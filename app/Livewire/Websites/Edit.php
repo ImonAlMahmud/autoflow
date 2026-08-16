@@ -97,7 +97,11 @@ class Edit extends Component
 
     public function update()
     {
-        if ($this->website && is_a($this->website, Website::class)) {
+        if (!$this->website || !is_a($this->website, Website::class)) {
+            $this->website = Website::find($this->websiteId ?? 1);
+        }
+
+        if ($this->website) {
             $this->website->update([
                 'name' => $this->name,
                 'domain' => $this->domain,
@@ -119,12 +123,16 @@ class Edit extends Component
 
         $this->dispatch('toast', title: 'Settings Saved', message: "Website configuration for {$this->name} updated successfully.", type: 'success');
 
-        return redirect()->route('websites.show', $this->websiteId);
+        return redirect()->route('websites.show', $this->websiteId ?? 1);
     }
 
     public function deleteWebsite()
     {
-        if ($this->website && is_a($this->website, Website::class)) {
+        if (!$this->website || !is_a($this->website, Website::class)) {
+            $this->website = Website::find($this->websiteId ?? 1);
+        }
+
+        if ($this->website) {
             $this->website->delete();
         }
 
