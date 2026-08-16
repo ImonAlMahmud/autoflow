@@ -37,13 +37,22 @@ class Edit extends Component
 
     public function mount($website = null)
     {
-        $this->websiteId = is_object($website) ? $website->id : $website;
-        
-        if ($this->websiteId) {
+        if ($website instanceof Website) {
+            $this->website = $website;
+        } elseif (is_numeric($website) || is_string($website)) {
+            $this->website = Website::find($website);
+        }
+
+        if (!$this->website && $this->websiteId) {
             $this->website = Website::find($this->websiteId);
         }
 
+        if (!$this->website) {
+            $this->website = Website::first();
+        }
+
         if ($this->website) {
+            $this->websiteId = $this->website->id;
             $this->name = $this->website->name;
             $this->domain = $this->website->domain;
             $this->local_production_path = $this->website->local_production_path ?? '';
