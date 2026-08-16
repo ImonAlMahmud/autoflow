@@ -218,7 +218,7 @@
                     <input
                         wire:model="notification_email"
                         type="email"
-                        placeholder="e.g. client@domain.com or admin@domain.com"
+                        placeholder="e.g. client@catharsisintl.com or admin@ideomet.com"
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
                     >
                 </div>
@@ -230,9 +230,10 @@
                 <input
                     wire:model="protected_terms"
                     type="text"
-                    placeholder="Autoflow, CompanyName, ProductKey"
+                    placeholder="e.g. Autoflow, Ideomet Technologies, ISO 9001:2015, RL-549, BAIRA"
                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
                 >
+                <span class="text-[10px] text-[#667085] mt-0.5 block">Exact legal or brand terms that Groq AI must NEVER alter or rewrite.</span>
             </div>
 
             <div>
@@ -240,9 +241,10 @@
                 <input
                     wire:model="global_exclusion_selectors"
                     type="text"
-                    placeholder="header, footer, nav, .sidebar"
+                    placeholder="e.g. header, footer, nav, .cookie-banner, #privacy-modal, .no-ai-rewrite"
                     class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
                 >
+                <span class="text-[10px] text-[#667085] mt-0.5 block">CSS selectors of HTML blocks to completely skip from AI content rewriting.</span>
             </div>
         </div>
 

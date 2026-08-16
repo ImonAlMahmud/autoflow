@@ -207,7 +207,7 @@
                 <input
                     wire:model="notification_email"
                     type="email"
-                    placeholder="e.g. client@domain.com or admin@domain.com"
+                    placeholder="e.g. client@catharsisintl.com or admin@ideomet.com"
                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
                 >
                 <span class="text-[10px] text-[#667085] mt-0.5 block">Email address to receive automated execution logs, AI rewrite status, and Git push notifications for this website.</span>
@@ -218,8 +218,10 @@
                 <input
                     wire:model="protected_terms"
                     type="text"
-                    class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] text-[#101828]"
+                    placeholder="e.g. Autoflow, Ideomet Technologies, ISO 9001:2015, RL-549, BAIRA"
+                    class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
                 >
+                <span class="text-[10px] text-[#667085] mt-0.5 block">Exact legal or brand terms that Groq AI must NEVER alter or rewrite.</span>
             </div>
 
             <div>
@@ -227,8 +229,10 @@
                 <input
                     wire:model="global_exclusion_selectors"
                     type="text"
-                    class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] text-[#101828]"
+                    placeholder="e.g. header, footer, nav, .cookie-banner, #privacy-modal, .no-ai-rewrite"
+                    class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
                 >
+                <span class="text-[10px] text-[#667085] mt-0.5 block">CSS selectors of HTML blocks to completely skip from AI content rewriting.</span>
             </div>
         </div>
 
