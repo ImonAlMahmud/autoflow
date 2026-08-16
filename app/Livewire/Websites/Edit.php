@@ -53,10 +53,14 @@ class Edit extends Component
 
         if ($this->website) {
             $this->websiteId = $this->website->id;
-            $this->name = $this->website->name;
-            $this->domain = $this->website->domain;
+            $this->name = $this->website->name ?? '';
+            $this->domain = $this->website->domain ?? '';
             $this->local_production_path = $this->website->local_production_path ?? '';
-            $this->git_repository_url = str_starts_with($this->website->git_repository_url, 'local://') ? '' : ($this->website->git_repository_url ?? '');
+            
+            // Safe null check for str_starts_with in PHP 8.2+
+            $rawGitUrl = $this->website->git_repository_url ?? '';
+            $this->git_repository_url = str_starts_with($rawGitUrl, 'local://') ? '' : $rawGitUrl;
+            
             $this->git_branch = $this->website->git_branch ?? 'main';
             $this->git_access_token = $this->website->git_access_token ?? '';
             $this->git_author_name = $this->website->git_author_name ?? 'Imon Mahmud';
