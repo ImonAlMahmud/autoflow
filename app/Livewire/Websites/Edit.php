@@ -147,6 +147,27 @@ class Edit extends Component
 
     public function render()
     {
-        return view('livewire.websites.edit');
+        return view('livewire.websites.edit', [
+            'websiteId' => $this->websiteId,
+            'website' => $this->website,
+            'name' => $this->name,
+            'domain' => $this->domain,
+            'source_type' => $this->source_type,
+            'local_production_path' => $this->local_production_path,
+            'git_repository_url' => $this->git_repository_url,
+            'git_branch' => $this->git_branch,
+            'git_access_token' => $this->git_access_token,
+            'git_author_name' => $this->git_author_name,
+            'git_author_email' => $this->git_author_email,
+            'approval_mode' => $this->approval_mode,
+            'notification_email' => $this->notification_email,
+            'interval_value' => $this->interval_value,
+            'interval_unit' => $this->interval_unit,
+            'protected_terms' => $this->protected_terms,
+            'global_exclusion_selectors' => $this->global_exclusion_selectors,
+            'status' => $this->status,
+            'testingConnection' => $this->testingConnection,
+            'connectionResult' => $this->connectionResult,
+        ]);
     }
 }
