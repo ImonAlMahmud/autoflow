@@ -23,6 +23,11 @@ Route::get('/contact', function () {
     return view('marketing.contact');
 })->name('contact');
 
+// Public SaaS User Registration Route
+Route::middleware('guest')->group(function () {
+    Route::get('/register', \App\Livewire\Auth\Register::class)->name('register');
+});
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', \App\Livewire\Dashboard\Overview::class)->name('dashboard');
 
@@ -66,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', \App\Livewire\Settings\Index::class)->name('index');
     });
 
+    Route::get('/subscription', \App\Livewire\Subscription\Index::class)->name('subscription');
     Route::get('/system-health', \App\Livewire\Health\Show::class)->name('system-health');
     Route::get('/system/deployment', function () {
         return view('deployment-guide');

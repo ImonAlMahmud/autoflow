@@ -72,6 +72,16 @@ class Create extends Component
     {
         $this->validate();
 
+        $user = auth()->user();
+        if ($user && !$user->canAddWebsite()) {
+            $this->dispatch('toast', 
+                title: 'Quota Reached ⚠️', 
+                message: "You have reached your limit of {$user->websites_limit} websites on the {$user->plan_badge}. Upgrade to Pro/Enterprise for higher limits!", 
+                type: 'danger'
+            );
+            return redirect()->route('subscription');
+        }
+
         Website::create([
             'user_id' => auth()->id() ?? 1,
             'name' => $this->name,
