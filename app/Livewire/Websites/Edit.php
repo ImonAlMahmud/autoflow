@@ -35,47 +35,41 @@ class Edit extends Component
     public bool $testingConnection = false;
     public ?string $connectionResult = null;
 
-    public function mount($website = null)
+    public function mount($website = 1)
     {
+        $target = null;
         if ($website instanceof Website) {
-            $this->website = $website;
-        } elseif (is_numeric($website) || is_string($website)) {
-            $this->website = Website::find($website);
+            $target = $website;
+        } else {
+            $target = Website::find($website) ?? Website::first();
         }
 
-        if (!$this->website && $this->websiteId) {
-            $this->website = Website::find($this->websiteId);
-        }
-
-        if (!$this->website) {
-            $this->website = Website::first();
-        }
-
-        if ($this->website) {
-            $this->websiteId = $this->website->id;
-            $this->name = $this->website->name ?? '';
-            $this->domain = $this->website->domain ?? '';
-            $this->local_production_path = $this->website->local_production_path ?? '';
+        if ($target) {
+            $this->website = $target;
+            $this->websiteId = $target->id;
+            $this->name = $target->name ?? '';
+            $this->domain = $target->domain ?? '';
+            $this->local_production_path = $target->local_production_path ?? '';
             
             // Safe null check for str_starts_with in PHP 8.2+
-            $rawGitUrl = $this->website->git_repository_url ?? '';
+            $rawGitUrl = $target->git_repository_url ?? '';
             $this->git_repository_url = str_starts_with($rawGitUrl, 'local://') ? '' : $rawGitUrl;
             
-            $this->git_branch = $this->website->git_branch ?? 'main';
-            $this->git_access_token = $this->website->git_access_token ?? '';
-            $this->git_author_name = $this->website->git_author_name ?? 'Imon Mahmud';
-            $this->git_author_email = $this->website->git_author_email ?? 'imon.mahmud4@gmail.com';
-            $this->source_type = !empty($this->website->local_production_path) ? 'local' : 'git';
+            $this->git_branch = $target->git_branch ?? 'main';
+            $this->git_access_token = $target->git_access_token ?? '';
+            $this->git_author_name = $target->git_author_name ?? 'Imon Mahmud';
+            $this->git_author_email = $target->git_author_email ?? 'imon.mahmud4@gmail.com';
+            $this->source_type = !empty($target->local_production_path) ? 'local' : 'git';
 
-            $this->approval_mode = is_object($this->website->approval_mode) ? $this->website->approval_mode->value : ($this->website->approval_mode ?? 'automatic');
-            $this->notification_email = $this->website->notification_email ?? '';
+            $this->approval_mode = is_object($target->approval_mode) ? $target->approval_mode->value : ($target->approval_mode ?? 'automatic');
+            $this->notification_email = $target->notification_email ?? '';
             
-            $this->interval_value = $this->website->default_rewrite_interval_days ?? 30;
-            $this->interval_unit = $this->website->default_rewrite_interval_unit ?? 'days';
+            $this->interval_value = $target->default_rewrite_interval_days ?? 30;
+            $this->interval_unit = $target->default_rewrite_interval_unit ?? 'days';
 
-            $this->protected_terms = is_array($this->website->protected_terms) ? implode(', ', $this->website->protected_terms) : ($this->website->protected_terms ?? '');
-            $this->global_exclusion_selectors = is_array($this->website->global_exclusion_selectors) ? implode(', ', $this->website->global_exclusion_selectors) : ($this->website->global_exclusion_selectors ?? '');
-            $this->status = is_object($this->website->status) ? $this->website->status->value : ($this->website->status ?? 'active');
+            $this->protected_terms = is_array($target->protected_terms) ? implode(', ', $target->protected_terms) : ($target->protected_terms ?? '');
+            $this->global_exclusion_selectors = is_array($target->global_exclusion_selectors) ? implode(', ', $target->global_exclusion_selectors) : ($target->global_exclusion_selectors ?? '');
+            $this->status = is_object($target->status) ? $target->status->value : ($target->status ?? 'active');
         }
     }
 
@@ -101,12 +95,10 @@ class Edit extends Component
 
     public function update()
     {
-        if (!$this->website || !is_a($this->website, Website::class)) {
-            $this->website = Website::find($this->websiteId ?? 1);
-        }
+        $target = Website::find($this->websiteId ?? 1) ?? Website::first();
 
-        if ($this->website) {
-            $this->website->update([
+        if ($target) {
+            $target->update([
                 'name' => $this->name,
                 'domain' => $this->domain,
                 'local_production_path' => $this->source_type === 'local' ? $this->local_production_path : null,
@@ -125,19 +117,17 @@ class Edit extends Component
             ]);
         }
 
-        $this->dispatch('toast', title: 'Settings Saved', message: "Website configuration for {$this->name} updated successfully.", type: 'success');
+        $this->dispatch('toast', title: 'Settings Saved', message: "Website configuration updated successfully.", type: 'success');
 
-        return redirect()->route('websites.show', $this->websiteId ?? 1);
+        return redirect()->route('websites.show', $target->id ?? 1);
     }
 
     public function deleteWebsite()
     {
-        if (!$this->website || !is_a($this->website, Website::class)) {
-            $this->website = Website::find($this->websiteId ?? 1);
-        }
+        $target = Website::find($this->websiteId ?? 1) ?? Website::first();
 
-        if ($this->website) {
-            $this->website->delete();
+        if ($target) {
+            $target->delete();
         }
 
         $this->dispatch('toast', title: 'Website Disconnected', message: 'Website and tracking configuration removed.', type: 'warning');

@@ -26,7 +26,8 @@
                 <div>
                     <label class="block text-xs font-semibold text-[#344054] mb-1">Website Name *</label>
                     <input
-                        wire:model="name"
+                        wire:model.blur="name"
+                        value="{{ $name ?? '' }}"
                         type="text"
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
                     >
@@ -35,7 +36,8 @@
                 <div>
                     <label class="block text-xs font-semibold text-[#344054] mb-1">Primary Domain / Hostname *</label>
                     <input
-                        wire:model="domain"
+                        wire:model.blur="domain"
+                        value="{{ $domain ?? '' }}"
                         type="text"
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
                     >
@@ -47,7 +49,7 @@
                 <label class="block text-xs font-semibold text-[#344054] mb-2">Website Files Source Location *</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label class="p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 {{ ($source_type ?? 'local') === 'local' ? 'border-indigo-600 bg-indigo-50/50' : 'border-[#EAECF0] hover:bg-[#F9FAFB]' }}">
-                        <input type="radio" wire:model.live="source_type" value="local" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                        <input type="radio" wire:model.live="source_type" value="local" {{ ($source_type ?? 'local') === 'local' ? 'checked' : '' }} class="mt-1 text-indigo-600 focus:ring-indigo-500">
                         <div>
                             <span class="text-xs font-bold text-[#101828] block">🖥️ Local Computer Folder (Direct)</span>
                             <span class="text-[11px] text-[#667085] mt-0.5 block">Use an existing static website folder located on this PC.</span>
@@ -55,7 +57,7 @@
                     </label>
 
                     <label class="p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 {{ ($source_type ?? 'local') === 'git' ? 'border-indigo-600 bg-indigo-50/50' : 'border-[#EAECF0] hover:bg-[#F9FAFB]' }}">
-                        <input type="radio" wire:model.live="source_type" value="git" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                        <input type="radio" wire:model.live="source_type" value="git" {{ ($source_type ?? 'local') === 'git' ? 'checked' : '' }} class="mt-1 text-indigo-600 focus:ring-indigo-500">
                         <div>
                             <span class="text-xs font-bold text-[#101828] block">🌐 GitHub / Remote Git Repository</span>
                             <span class="text-[11px] text-[#667085] mt-0.5 block">Automatically clone and pull latest files from GitHub.</span>
@@ -69,7 +71,8 @@
                 <div class="p-4 bg-[#F9FAFB] rounded-xl border border-[#EAECF0] space-y-2">
                     <label class="block text-xs font-semibold text-[#344054]">Local Website Directory Path *</label>
                     <input
-                        wire:model="local_production_path"
+                        wire:model.blur="local_production_path"
+                        value="{{ $local_production_path ?? '' }}"
                         type="text"
                         placeholder="e.g. C:\xampp\htdocs\mysite"
                         class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
@@ -81,7 +84,8 @@
                     <div>
                         <label class="block text-xs font-semibold text-[#344054] mb-1">Git Repository URL (HTTPS or SSH) *</label>
                         <input
-                            wire:model="git_repository_url"
+                            wire:model.blur="git_repository_url"
+                            value="{{ $git_repository_url ?? '' }}"
                             type="text"
                             placeholder="https://github.com/username/repository.git"
                             class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white"
@@ -92,7 +96,8 @@
                         <div>
                             <label class="block text-xs font-semibold text-[#344054] mb-1">Target Branch</label>
                             <input
-                                wire:model="git_branch"
+                                wire:model.blur="git_branch"
+                                value="{{ $git_branch ?? 'main' }}"
                                 type="text"
                                 class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white"
                             >
@@ -100,7 +105,8 @@
                         <div>
                             <label class="block text-xs font-semibold text-[#344054] mb-1">Git Personal Access Token (PAT)</label>
                             <input
-                                wire:model="git_access_token"
+                                wire:model.blur="git_access_token"
+                                value="{{ $git_access_token ?? '' }}"
                                 type="password"
                                 placeholder="ghp_••••••••••••••••••••"
                                 class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white"
@@ -120,7 +126,8 @@
                     <div>
                         <label class="block text-xs font-semibold text-[#344054] mb-1">Git Commit Author Name *</label>
                         <input
-                            wire:model="git_author_name"
+                            wire:model.blur="git_author_name"
+                            value="{{ $git_author_name ?? '' }}"
                             type="text"
                             placeholder="e.g. Imon Mahmud"
                             class="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
@@ -130,7 +137,8 @@
                     <div>
                         <label class="block text-xs font-semibold text-[#344054] mb-1">Git Commit Author Email *</label>
                         <input
-                            wire:model="git_author_email"
+                            wire:model.blur="git_author_email"
+                            value="{{ $git_author_email ?? '' }}"
                             type="email"
                             placeholder="e.g. imon.mahmud4@gmail.com"
                             class="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
@@ -174,8 +182,8 @@
                         wire:model="approval_mode"
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
                     >
-                        <option value="automatic">Automatic (Auto-update content when validation passes)</option>
-                        <option value="manual">Manual Review (Require human approval before applying)</option>
+                        <option value="automatic" {{ ($approval_mode ?? 'automatic') === 'automatic' ? 'selected' : '' }}>Automatic (Auto-update content when validation passes)</option>
+                        <option value="manual" {{ ($approval_mode ?? 'automatic') === 'manual' ? 'selected' : '' }}>Manual Review (Require human approval before applying)</option>
                     </select>
                 </div>
 
@@ -183,7 +191,8 @@
                     <label class="block text-xs font-semibold text-[#344054] mb-1">Default Rewrite Interval *</label>
                     <div class="flex items-center gap-2">
                         <input
-                            wire:model="interval_value"
+                            wire:model.blur="interval_value"
+                            value="{{ $interval_value ?? 30 }}"
                             type="number"
                             min="1"
                             class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
@@ -192,10 +201,10 @@
                             wire:model="interval_unit"
                             class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
                         >
-                            <option value="minutes">Minute(s)</option>
-                            <option value="hours">Hour(s)</option>
-                            <option value="days">Day(s)</option>
-                            <option value="months">Month(s)</option>
+                            <option value="minutes" {{ ($interval_unit ?? 'days') === 'minutes' ? 'selected' : '' }}>Minute(s)</option>
+                            <option value="hours" {{ ($interval_unit ?? 'days') === 'hours' ? 'selected' : '' }}>Hour(s)</option>
+                            <option value="days" {{ ($interval_unit ?? 'days') === 'days' ? 'selected' : '' }}>Day(s)</option>
+                            <option value="months" {{ ($interval_unit ?? 'days') === 'months' ? 'selected' : '' }}>Month(s)</option>
                         </select>
                     </div>
                 </div>
@@ -205,7 +214,8 @@
             <div>
                 <label class="block text-xs font-semibold text-[#344054] mb-1">Notification Receiver Email (Website-Specific Alert Address)</label>
                 <input
-                    wire:model="notification_email"
+                    wire:model.blur="notification_email"
+                    value="{{ $notification_email ?? '' }}"
                     type="email"
                     placeholder="e.g. client@catharsisintl.com or admin@ideomet.com"
                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
@@ -216,7 +226,8 @@
             <div>
                 <label class="block text-xs font-semibold text-[#344054] mb-1">Protected Brand Terms (Comma separated)</label>
                 <input
-                    wire:model="protected_terms"
+                    wire:model.blur="protected_terms"
+                    value="{{ $protected_terms ?? '' }}"
                     type="text"
                     placeholder="e.g. Autoflow, Ideomet Technologies, ISO 9001:2015, RL-549, BAIRA"
                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
@@ -227,7 +238,8 @@
             <div>
                 <label class="block text-xs font-semibold text-[#344054] mb-1">Global Excluded HTML Selectors</label>
                 <input
-                    wire:model="global_exclusion_selectors"
+                    wire:model.blur="global_exclusion_selectors"
+                    value="{{ $global_exclusion_selectors ?? '' }}"
                     type="text"
                     placeholder="e.g. header, footer, nav, .cookie-banner, #privacy-modal, .no-ai-rewrite"
                     class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
