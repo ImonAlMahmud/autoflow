@@ -35,6 +35,7 @@ class Website extends Model
         'timezone',
         'auto_push_enabled',
         'approval_mode',
+        'notification_email',
         'status',
         'global_exclusion_selectors',
         'protected_terms',

@@ -63,6 +63,12 @@
                 <span class="text-[11px] text-[#667085] uppercase font-semibold">Default Interval</span>
                 <p class="text-xs font-bold text-[#101828] mt-1">{{ $website->default_rewrite_interval_days ?? 30 }} {{ ucfirst($website->default_rewrite_interval_unit ?? 'days') }}</p>
             </div>
+            <div>
+                <span class="text-[11px] text-[#667085] uppercase font-semibold">Notification Email</span>
+                <p class="text-xs font-bold text-indigo-600 mt-1 truncate" title="{{ $website->notification_email ?? 'Not Configured' }}">
+                    {{ $website->notification_email ?: 'Default Admin' }}
+                </p>
+            </div>
         </div>
     </div>
 

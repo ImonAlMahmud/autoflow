@@ -21,6 +21,7 @@ class Create extends Component
     public string $git_author_name = 'Imon Mahmud';
     public string $git_author_email = 'imon.mahmud4@gmail.com';
     public string $approval_mode = 'automatic';
+    public string $notification_email = '';
     
     // Dynamic Time Interval
     public int $interval_value = 5;
@@ -41,6 +42,7 @@ class Create extends Component
             'git_repository_url' => 'nullable|required_if:source_type,git|string|max:255',
             'git_branch' => 'required|string|max:100',
             'approval_mode' => 'required|string',
+            'notification_email' => 'nullable|email|max:255',
             'interval_value' => 'required|integer|min:1',
             'interval_unit' => 'required|in:minutes,hours,days,months',
         ];
@@ -82,6 +84,7 @@ class Create extends Component
             'git_author_name' => $this->git_author_name ?: 'Imon Mahmud',
             'git_author_email' => $this->git_author_email ?: 'imon.mahmud4@gmail.com',
             'approval_mode' => $this->approval_mode === 'automatic' ? ApprovalMode::Automatic : ApprovalMode::Manual,
+            'notification_email' => $this->notification_email ?: null,
             'status' => WebsiteStatus::Active,
             'default_rewrite_interval_days' => $this->interval_value,
             'default_rewrite_interval_unit' => $this->interval_unit,

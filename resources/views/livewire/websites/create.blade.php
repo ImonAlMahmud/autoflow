@@ -211,6 +211,20 @@
                 </div>
             </div>
 
+            <!-- Website-wise Notification Receiver Email -->
+            <div>
+                <label class="block text-xs font-semibold text-[#344054] mb-1">Notification Receiver Email (Website-Specific Alert Address)</label>
+                <div class="relative">
+                    <input
+                        wire:model="notification_email"
+                        type="email"
+                        placeholder="e.g. client@domain.com or admin@domain.com"
+                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                    >
+                </div>
+                <span class="text-[10px] text-[#667085] mt-0.5 block">Email address to receive automated execution logs, AI rewrite status, and Git push notifications for this website.</span>
+            </div>
+
             <div>
                 <label class="block text-xs font-semibold text-[#344054] mb-1">Protected Brand Terms (Comma separated)</label>
                 <input

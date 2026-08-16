@@ -22,6 +22,7 @@ class Edit extends Component
     public string $git_author_name = 'Imon Mahmud';
     public string $git_author_email = 'imon.mahmud4@gmail.com';
     public string $approval_mode = 'automatic';
+    public string $notification_email = '';
     
     // Dynamic Time Interval
     public int $interval_value = 30;
@@ -54,6 +55,7 @@ class Edit extends Component
             $this->source_type = !empty($this->website->local_production_path) ? 'local' : 'git';
 
             $this->approval_mode = is_object($this->website->approval_mode) ? $this->website->approval_mode->value : ($this->website->approval_mode ?? 'automatic');
+            $this->notification_email = $this->website->notification_email ?? '';
             
             $this->interval_value = $this->website->default_rewrite_interval_days ?? 30;
             $this->interval_unit = $this->website->default_rewrite_interval_unit ?? 'days';
@@ -98,6 +100,7 @@ class Edit extends Component
                 'git_author_email' => $this->git_author_email ?: 'imon.mahmud4@gmail.com',
                 'git_auth_method' => GitAuthMethod::HttpsToken,
                 'approval_mode' => $this->approval_mode === 'automatic' ? ApprovalMode::Automatic : ApprovalMode::Manual,
+                'notification_email' => $this->notification_email ?: null,
                 'default_rewrite_interval_days' => $this->interval_value,
                 'default_rewrite_interval_unit' => $this->interval_unit,
                 'protected_terms' => array_map('trim', explode(',', $this->protected_terms)),
