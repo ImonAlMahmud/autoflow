@@ -16,8 +16,8 @@ class Create extends Component
     public string $git_branch = 'main';
     public string $git_auth_method = 'access_token';
     public string $git_access_token = '';
-    public string $git_author_name = 'Imon Mahmud';
-    public string $git_author_email = 'imon.mahmud4@gmail.com';
+    public string $git_author_name = '';
+    public string $git_author_email = '';
     public string $approval_mode = 'automatic';
     public string $notification_email = '';
     
@@ -25,16 +25,16 @@ class Create extends Component
     public int $interval_value = 5;
     public string $interval_unit = 'minutes'; // minutes, hours, days, months
 
-    public string $protected_terms = 'Autoflow, SaaS, AI';
-    public string $global_exclusion_selectors = 'header, footer, nav, .cookie-banner';
+    public string $protected_terms = '';
+    public string $global_exclusion_selectors = '';
     public bool $testingConnection = false;
     public ?string $connectionResult = null;
 
     public function mount()
     {
-        // Pre-fill author info from Global Settings if available
-        $this->git_author_name = \App\Models\SystemSetting::get('global_github_author_name', 'Autoflow AI') ?? 'Autoflow AI';
-        $this->git_author_email = \App\Models\SystemSetting::get('global_github_author_email', 'bot@autoflow.ideomet.com') ?? 'bot@autoflow.ideomet.com';
+        // Keep inputs clean for user entry
+        $this->git_author_name = \App\Models\SystemSetting::get('global_github_author_name', '') ?? '';
+        $this->git_author_email = \App\Models\SystemSetting::get('global_github_author_email', '') ?? '';
     }
 
     protected function rules(): array
