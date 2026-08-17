@@ -124,40 +124,54 @@ class Index extends Component
     public function runNow($jobId)
     {
         $this->activeRunningJobId = $jobId;
-        $this->showWorkflowModal = true;
-        
+        $this->showWorkflowModal  = true;
+
         $job = RewriteJob::find($jobId);
         if (!$job) {
             $this->workflowResult = [
-                'success' => false,
-                'failed_label' => 'Job Lookup',
+                'success'       => false,
+                'failed_step'   => 'job_lookup',
                 'error_message' => 'Job #' . $jobId . ' not found in database.',
-                'steps' => [],
+                'steps'         => [],
             ];
             return;
         }
 
         try {
-            $executor = new \App\Services\JobExecutionService();
-            $result = $executor->executeJobWithSteps($job);
+            $executor             = new \App\Services\JobExecutionService();
+            $result               = $executor->executeJobWithSteps($job);
             $this->workflowResult = $result;
 
             if ($result['success'] ?? false) {
-                $this->dispatch('toast', title: 'Job Executed Successfully! 🚀', message: "Job #{$jobId} processed through AI & pushed to GitHub!", type: 'success');
+                $isPending = $result['is_pending_review'] ?? false;
+                $this->dispatch('toast',
+                    title:   $isPending ? 'Awaiting Your Approval 🔍' : 'Job Executed Successfully! 🚀',
+                    message: $isPending
+                        ? "Job #{$jobId} is ready for manual review before pushing to GitHub."
+                        : "Job #{$jobId} processed by AI and pushed to GitHub!",
+                    type:    $isPending ? 'info' : 'success'
+                );
             } else {
-                $this->dispatch('toast', title: 'Workflow Step Failed ⚠️', message: "Failed at {$result['failed_label']}: {$result['error_message']}", type: 'danger');
+                $failedAt = $result['failed_step'] ?? 'unknown step';
+                $errMsg   = $result['error_message'] ?? 'Unknown error';
+                $this->dispatch('toast',
+                    title:   'Workflow Step Failed ⚠️',
+                    message: "Failed at [{$failedAt}]: {$errMsg}",
+                    type:    'danger'
+                );
             }
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("RunNow Workflow Execution Error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("RunNow Workflow Error: " . $e->getMessage());
             $this->workflowResult = [
-                'success' => false,
-                'failed_label' => 'System Execution',
+                'success'       => false,
+                'failed_step'   => 'system_execution',
                 'error_message' => $e->getMessage(),
-                'steps' => [],
+                'steps'         => [],
             ];
             $this->dispatch('toast', title: 'System Exception', message: $e->getMessage(), type: 'danger');
         }
     }
+
 
     public function approveAndPush($jobId)
     {

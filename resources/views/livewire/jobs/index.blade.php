@@ -523,7 +523,7 @@
                     <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-2">
                         <div class="flex items-center gap-2 text-rose-800 font-bold text-xs">
                             <i class="fa-solid fa-circle-exclamation text-rose-600"></i>
-                            Execution Failed at: {{ $workflowResult['failed_label'] ?? 'Pipeline Step' }}
+                            Execution Failed at: {{ ucwords(str_replace('_', ' ', $workflowResult['failed_step'] ?? 'Pipeline Step')) }}
                         </div>
                         <p class="text-xs text-rose-700 font-mono bg-white/80 p-2.5 rounded-xl border border-rose-200 break-words">
                             {{ $workflowResult['error_message'] ?? 'Unknown error occurred during execution.' }}
