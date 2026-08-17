@@ -80,5 +80,7 @@ class PushRepositoryJob implements ShouldQueue
         }
 
         Log::info("PushRepositoryJob completed for job #{$this->rewriteJob->id}. Job marked as Completed.");
+
+        \App\Services\EmailNotificationService::notifyJobCompleted($this->rewriteJob);
     }
 }

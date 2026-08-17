@@ -24,6 +24,7 @@ class Show extends Component
                 $scheduledAt = match($unit) {
                     'minutes' => $createdAt->addMinutes($val),
                     'hours'   => $createdAt->addHours($val),
+                    'weeks'   => $createdAt->addWeeks($val),
                     'months'  => $createdAt->addMonths($val),
                     default   => $createdAt->addDays($val),
                 };

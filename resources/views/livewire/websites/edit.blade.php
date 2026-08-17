@@ -154,6 +154,7 @@
                             <option value="minutes" {{ ($interval_unit ?? 'days') === 'minutes' ? 'selected' : '' }}>Minute(s)</option>
                             <option value="hours" {{ ($interval_unit ?? 'days') === 'hours' ? 'selected' : '' }}>Hour(s)</option>
                             <option value="days" {{ ($interval_unit ?? 'days') === 'days' ? 'selected' : '' }}>Day(s)</option>
+                            <option value="weeks" {{ ($interval_unit ?? 'days') === 'weeks' ? 'selected' : '' }}>Week(s)</option>
                             <option value="months" {{ ($interval_unit ?? 'days') === 'months' ? 'selected' : '' }}>Month(s)</option>
                         </select>
                     </div>

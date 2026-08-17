@@ -335,6 +335,9 @@ PROMPT;
             ]);
             $this->queueNextScheduledJob($job);
             $this->cleanupTemporaryWorkspace($job, $filePath);
+
+            \App\Services\EmailNotificationService::notifyPendingApproval($job);
+
             return ['success' => true, 'steps' => $steps, 'is_pending_review' => true];
         }
 
@@ -365,6 +368,9 @@ PROMPT;
             $job->update(['status' => JobStatus::Failed, 'error_message' => $gitError, 'finished_at' => now()]);
             $this->queueNextScheduledJob($job);
             $this->cleanupTemporaryWorkspace($job, $filePath);
+
+            \App\Services\EmailNotificationService::notifyJobFailed($job, $gitError);
+
             return ['success' => false, 'failed_step' => 'git_sync', 'error_message' => $gitError, 'steps' => $steps];
         }
 
@@ -385,6 +391,11 @@ PROMPT;
 
         $this->queueNextScheduledJob($job);
         $this->cleanupTemporaryWorkspace($job, $filePath);
+
+        \App\Services\EmailNotificationService::notifyJobCompleted($job, [
+            'segments_count' => $replacedCount,
+            'ai_model'       => $usedModel,
+        ]);
 
         return ['success' => true, 'steps' => $steps];
     }
@@ -492,6 +503,7 @@ PROMPT;
             $nextAt = match ($unit) {
                 'minutes' => now()->addMinutes($val),
                 'hours'   => now()->addHours($val),
+                'weeks'   => now()->addWeeks($val),
                 'months'  => now()->addMonths($val),
                 default   => now()->addDays($val),
             };

@@ -1,0 +1,1 @@
+{"version":"pest_3.8.7","defects":{"Tests\\Unit\\HtmlParserServiceTest::test_extracts_headings_and_paragraphs":7},"times":{"Tests\\Unit\\HtmlParserServiceTest::test_extracts_headings_and_paragraphs":0.088,"Tests\\Unit\\ProtectedValueServiceTest::test_extracts_phone_numbers_and_emails":0.002,"Tests\\Unit\\ProtectedValueServiceTest::test_detects_missing_protected_values":0}}

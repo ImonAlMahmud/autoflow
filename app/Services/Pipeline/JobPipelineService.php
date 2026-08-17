@@ -152,6 +152,8 @@ class JobPipelineService
             : null;
         $job->save();
 
+        \App\Services\EmailNotificationService::notifyJobFailed($job, $reason);
+
         if ($job->workspace_path && is_dir($job->workspace_path)) {
             try {
                 $this->workspaceService->cleanup($job->workspace_path);

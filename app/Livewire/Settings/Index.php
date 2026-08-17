@@ -89,23 +89,18 @@ class Index extends Component
         }
 
         try {
-            config([
-                'mail.mailers.smtp.host' => $this->mailHost,
-                'mail.mailers.smtp.port' => $this->mailPort,
-                'mail.mailers.smtp.username' => $this->mailUsername,
-                'mail.mailers.smtp.password' => $this->mailPassword,
-                'mail.mailers.smtp.encryption' => $this->mailEncryption,
-                'mail.from.address' => $this->mailFromAddress,
-                'mail.from.name' => $this->mailFromName,
+            \App\Services\EmailNotificationService::sendTestEmail($this->testEmailRecipient, [
+                'host'         => $this->mailHost,
+                'port'         => $this->mailPort,
+                'username'     => $this->mailUsername,
+                'password'     => $this->mailPassword,
+                'encryption'   => $this->mailEncryption,
+                'from_address' => $this->mailFromAddress,
+                'from_name'    => $this->mailFromName,
             ]);
 
-            Mail::raw("Hello! This is a test email sent from your Autoflow AI Content Automation System.\n\nYour SMTP settings are configured correctly!", function ($message) {
-                $message->to($this->testEmailRecipient)
-                        ->subject('Autoflow SMTP Connection Test');
-            });
-
-            $this->dispatch('toast', title: 'Test Email Sent', message: "Test message successfully dispatched to {$this->testEmailRecipient}.", type: 'success');
-        } catch (\Exception $e) {
+            $this->dispatch('toast', title: 'Test Email Sent! 🚀', message: "Test HTML email successfully dispatched to {$this->testEmailRecipient}.", type: 'success');
+        } catch (\Throwable $e) {
             $this->dispatch('toast', title: 'SMTP Error', message: $e->getMessage(), type: 'danger');
         }
     }

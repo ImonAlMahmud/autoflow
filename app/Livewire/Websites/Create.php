@@ -50,7 +50,7 @@ class Create extends Component
             'approval_mode' => 'required|string',
             'notification_email' => 'nullable|email|max:255',
             'interval_value' => 'required|integer|min:1',
-            'interval_unit' => 'required|in:minutes,hours,days,months',
+            'interval_unit' => 'required|in:minutes,hours,days,weeks,months',
         ];
     }
 

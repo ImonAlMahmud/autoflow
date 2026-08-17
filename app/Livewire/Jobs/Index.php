@@ -59,6 +59,7 @@ class Index extends Component
         $scheduledAt = match($unit) {
             'minutes' => now()->addMinutes($val),
             'hours'   => now()->addHours($val),
+            'weeks'   => now()->addWeeks($val),
             'months'  => now()->addMonths($val),
             default   => now()->addDays($val),
         };
@@ -250,6 +251,8 @@ class Index extends Component
                 'validation_status' => \App\Enums\ValidationStatus::Passed,
                 'finished_at'       => now(),
             ]);
+
+            \App\Services\EmailNotificationService::notifyJobCompleted($job);
 
             $this->dispatch('toast', title: 'Approved & Pushed! 🚀', message: "Job #{$job->id} changes pushed to GitHub — Vercel build triggered!", type: 'success');
         } catch (\Throwable $e) {

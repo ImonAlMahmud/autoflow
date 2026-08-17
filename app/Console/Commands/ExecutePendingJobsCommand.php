@@ -264,6 +264,7 @@ CRITICAL MANDATES:
                 $nextScheduledAt = match($unit) {
                     'minutes' => now()->addMinutes($val),
                     'hours'   => now()->addHours($val),
+                    'weeks'   => now()->addWeeks($val),
                     'months'  => now()->addMonths($val),
                     default   => now()->addDays($val),
                 };

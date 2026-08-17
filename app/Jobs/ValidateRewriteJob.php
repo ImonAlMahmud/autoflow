@@ -85,6 +85,7 @@ class ValidateRewriteJob implements ShouldQueue
             if ($effectiveApproval === ApprovalMode::Manual) {
                 $this->rewriteJob->status = JobStatus::PendingApproval;
                 Log::info("Job #{$this->rewriteJob->id} validation passed. Placed in PendingApproval mode.");
+                \App\Services\EmailNotificationService::notifyPendingApproval($this->rewriteJob);
             } else {
                 Log::info("Job #{$this->rewriteJob->id} validation passed. Continuing automatic pipeline.");
             }
@@ -95,6 +96,8 @@ class ValidateRewriteJob implements ShouldQueue
             $this->rewriteJob->status            = JobStatus::Failed;
             $this->rewriteJob->failure_reason     = $failureMsg;
             $this->rewriteJob->save();
+
+            \App\Services\EmailNotificationService::notifyJobFailed($this->rewriteJob, $failureMsg);
 
             Log::warning("ValidateRewriteJob failed for job #{$this->rewriteJob->id}: {$failureMsg}");
             throw new RuntimeException($failureMsg);
