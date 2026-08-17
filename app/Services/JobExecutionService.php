@@ -145,22 +145,29 @@ PROMPT;
         $rewrittenMap = [];
         $aiError      = null;
 
-        // Helper: build the smart fallback model based on endpoint
-        $endpointFallbackModel = match (true) {
-            str_contains($endpoint, 'openai.com')    => 'gpt-4o-mini',
-            str_contains($endpoint, 'anthropic.com') => 'claude-3-haiku-20240307',
-            str_contains($endpoint, 'groq.com')      => 'llama-3.3-70b-versatile',
-            str_contains($endpoint, 'together.ai')   => 'meta-llama/Llama-3-70b-chat-hf',
-            str_contains($endpoint, 'mistral.ai')    => 'mistral-small-latest',
-            str_contains($endpoint, 'deepseek.com')  => 'deepseek-chat',
-            default                                   => 'gpt-4o-mini',
+        // Build ordered list of models to try — primary first, then fallbacks
+        $endpointFallbacks = match (true) {
+            str_contains($endpoint, 'openai.com')    => ['gpt-4o-mini', 'gpt-3.5-turbo'],
+            str_contains($endpoint, 'anthropic.com') => ['claude-3-haiku-20240307', 'claude-3-sonnet-20240229'],
+            str_contains($endpoint, 'groq.com')      => [
+                'llama-3.3-70b-versatile',
+                'llama-3.1-8b-instant',
+                'llama3-70b-8192',
+                'mixtral-8x7b-32768',
+                'gemma2-9b-it',
+                'llama-3.2-11b-vision-preview',
+            ],
+            str_contains($endpoint, 'together.ai')   => ['meta-llama/Llama-3-70b-chat-hf', 'mistralai/Mixtral-8x7B-v0.1'],
+            str_contains($endpoint, 'mistral.ai')    => ['mistral-small-latest', 'open-mistral-7b'],
+            str_contains($endpoint, 'deepseek.com')  => ['deepseek-chat', 'deepseek-coder'],
+            default                                   => ['gpt-4o-mini', 'gpt-3.5-turbo'],
         };
 
-        $attemptsToTry = [$modelId];
-        // If the configured model differs from the endpoint fallback, add fallback as second attempt
-        if ($modelId !== $endpointFallbackModel) {
-            $attemptsToTry[] = $endpointFallbackModel;
-        }
+        // Build attempts: configured model first, then endpoint fallbacks (deduped)
+        $attemptsToTry = array_values(array_unique(
+            array_merge([$modelId], $endpointFallbacks)
+        ));
+
 
         $usedModel = $modelId;
         foreach ($attemptsToTry as $attemptModel) {
