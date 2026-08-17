@@ -174,25 +174,50 @@ class Index extends Component
             // Safety check: only push if HTML is actually different from original
             $originalHtml  = $job->result?->original_segments['html'] ?? null;
 
-            if (empty($rewrittenHtml)) {
+
+            $needsRerun = empty($rewrittenHtml)
+                || ($originalHtml && trim($rewrittenHtml) === trim($originalHtml));
+
+            if ($needsRerun) {
+                // Auto re-execute: handles old jobs that ran before the new rewrite engine,
+                // or jobs where AI produced no change.
                 $this->dispatch('toast',
-                    title: 'No Rewritten Content Found ⚠️',
-                    message: 'This job has no stored AI-rewritten HTML. Please re-run the job using "Run Now" to generate fresh content before approving.',
-                    type: 'warning'
+                    title: 'Re-running AI Rewrite… ⚙️',
+                    message: 'Generating fresh content before pushing to GitHub. Please wait.',
+                    type: 'info'
                 );
-                return;
+
+                // Reset to scheduled so executor can run cleanly
+                $job->update(['status' => JobStatus::Scheduled, 'error_message' => null]);
+
+                $executor = new \App\Services\JobExecutionService();
+                $result   = $executor->executeJobWithSteps($job->fresh(['website', 'page', 'result', 'aiModel.provider']));
+
+                if (!($result['success'] ?? false) && !($result['is_pending_review'] ?? false)) {
+                    $this->dispatch('toast',
+                        title: 'Re-run Failed ⚠️',
+                        message: $result['error_message'] ?? 'AI rewrite failed. Check AI Provider settings.',
+                        type: 'danger'
+                    );
+                    return;
+                }
+
+                // Reload fresh job & HTML
+                $job           = RewriteJob::with(['website', 'page', 'result'])->find($jobId);
+                $rewrittenHtml = $job->result?->rewritten_segments['html'] ?? null;
+
+                if (empty($rewrittenHtml)) {
+                    $this->dispatch('toast',
+                        title: 'No Content Generated ⚠️',
+                        message: 'AI rewrite produced no output. Check AI model and API key.',
+                        type: 'danger'
+                    );
+                    return;
+                }
             }
 
-            // If rewritten HTML is identical to original, warn and abort
-            if ($originalHtml && trim($rewrittenHtml) === trim($originalHtml)) {
-                $this->dispatch('toast',
-                    title: 'Content Unchanged ⚠️',
-                    message: 'The AI did not change any content in this page. Please re-run the job to generate fresh content.',
-                    type: 'warning'
-                );
-                return;
-            }
 
+            // Push rewritten HTML to GitHub
             $gitService = new \App\Services\GitService();
             $gitRes = $gitService->commitAndPush(
                 $job->website,
