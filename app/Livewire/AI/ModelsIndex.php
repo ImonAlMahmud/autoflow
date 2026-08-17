@@ -33,12 +33,11 @@ class ModelsIndex extends Component
     {
         $user = auth()->user();
         $firstProvider = null;
-        if ($user && $user->isSuperAdmin()) {
-            $firstProvider = AiProvider::first();
-        } elseif ($user) {
-            $firstProvider = AiProvider::where('user_id', $user->id)->first();
+        if ($user) {
+            // Everyone (including Super Admin) sees their own providers first
+            $firstProvider = AiProvider::where('user_id', $user->id)->first()
+                ?? AiProvider::whereNull('user_id')->first();
         }
-        
         if ($firstProvider) {
             $this->selectedProviderId = $firstProvider->id;
         }
@@ -329,32 +328,37 @@ class ModelsIndex extends Component
     public function render()
     {
         $user = auth()->user();
-        $providersQuery = AiProvider::with('models');
-        $modelsQuery = AiModel::with('provider')->latest();
+        $userId = $user?->id;
 
-        if ($user && !$user->isSuperAdmin()) {
-            // User sees:
-            // 1. Their own created Providers (user_id == user->id)
-            // 2. Global System Providers provided by Super Admin (user_id IS NULL or owned by superadmin)
-            $providersQuery->where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
+        // Everyone (including Super Admin) sees ONLY their own providers & models.
+        // Regular users also see Super Admin's shared (null user_id) providers.
+        $providersQuery = AiProvider::with('models');
+        $modelsQuery    = AiModel::with('provider')->latest();
+
+        if ($user && $user->isSuperAdmin()) {
+            // Super Admin: only their own providers
+            $providersQuery->where('user_id', $userId);
+            $modelsQuery->whereHas('provider', fn($q) => $q->where('user_id', $userId));
+        } elseif ($user) {
+            // Regular user: own providers + Super Admin shared (null user_id) providers
+            $providersQuery->where(function ($q) use ($userId) {
+                $q->where('user_id', $userId)
                   ->orWhereNull('user_id')
                   ->orWhereHas('user', fn($sq) => $sq->where('role', 'superadmin'));
             });
-
-            $modelsQuery->whereHas('provider', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
+            $modelsQuery->whereHas('provider', function ($q) use ($userId) {
+                $q->where('user_id', $userId)
                   ->orWhereNull('user_id')
                   ->orWhereHas('user', fn($sq) => $sq->where('role', 'superadmin'));
             });
         }
 
         $providers = $providersQuery->get();
-        $models = $modelsQuery->get();
+        $models    = $modelsQuery->get();
 
         return view('livewire.ai.models-index', [
             'providers' => $providers,
-            'models' => $models,
+            'models'    => $models,
         ]);
     }
 }
