@@ -168,22 +168,35 @@ class Index extends Component
         }
 
         try {
-            $gitService = new \App\Services\GitService();
-            $pagePath = $job->page?->path ?? '/index.html';
-            
-            // Get the AI-rewritten & style-preserved HTML from result
+            $pagePath     = $job->page?->path ?? '/index.html';
             $rewrittenHtml = $job->result?->rewritten_segments['html'] ?? null;
 
+            // Safety check: only push if HTML is actually different from original
+            $originalHtml  = $job->result?->original_segments['html'] ?? null;
+
             if (empty($rewrittenHtml)) {
-                // Fallback: If not stored, fetch from GitHub
-                $githubApi = new \App\Services\GithubApiService();
-                $fileData = $githubApi->getFileContent($job->website, $pagePath);
-                $rewrittenHtml = $fileData['content'] ?? '';
+                $this->dispatch('toast',
+                    title: 'No Rewritten Content Found ⚠️',
+                    message: 'This job has no stored AI-rewritten HTML. Please re-run the job using "Run Now" to generate fresh content before approving.',
+                    type: 'warning'
+                );
+                return;
             }
-            
+
+            // If rewritten HTML is identical to original, warn and abort
+            if ($originalHtml && trim($rewrittenHtml) === trim($originalHtml)) {
+                $this->dispatch('toast',
+                    title: 'Content Unchanged ⚠️',
+                    message: 'The AI did not change any content in this page. Please re-run the job to generate fresh content.',
+                    type: 'warning'
+                );
+                return;
+            }
+
+            $gitService = new \App\Services\GitService();
             $gitRes = $gitService->commitAndPush(
                 $job->website,
-                "Autoflow AI (Manual Approved): Refreshed {$pagePath}",
+                "Autoflow AI (Approved): Refreshed {$pagePath}",
                 $pagePath,
                 $rewrittenHtml
             );
@@ -194,12 +207,12 @@ class Index extends Component
             }
 
             $job->update([
-                'status' => JobStatus::Completed,
+                'status'            => JobStatus::Completed,
                 'validation_status' => \App\Enums\ValidationStatus::Passed,
-                'finished_at' => now(),
+                'finished_at'       => now(),
             ]);
 
-            $this->dispatch('toast', title: 'Approved & Pushed! 🚀', message: "Job #{$job->id} changes pushed to GitHub main branch and deployed to Vercel!", type: 'success');
+            $this->dispatch('toast', title: 'Approved & Pushed! 🚀', message: "Job #{$job->id} changes pushed to GitHub — Vercel build triggered!", type: 'success');
         } catch (\Throwable $e) {
             $this->dispatch('toast', title: 'Push Exception', message: $e->getMessage(), type: 'danger');
         }
