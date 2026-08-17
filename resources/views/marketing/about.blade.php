@@ -93,24 +93,24 @@
         </div>
         <div data-reveal-stagger class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="card-hover p-6 rounded-3xl bg-white border border-[#E2E8F0] shadow-sm space-y-4">
-                <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center"><i class="fa-solid fa-bolt text-[#15803D] text-xl"></i></div>
-                <h3 class="text-sm font-bold text-[#0F172A]">Speed First</h3>
-                <p class="text-xs text-[#64748B] leading-relaxed">Performance is a feature. From Groq sub-2s inference to instant git pushes, every operation is optimized for real-time responsiveness.</p>
+                <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center"><i class="fa-solid fa-cloud-bolt text-[#15803D] text-xl"></i></div>
+                <h3 class="text-sm font-bold text-[#0F172A]">Zero Disk Footprint</h3>
+                <p class="text-xs text-[#64748B] leading-relaxed">Cloud-native In-Memory processing via GitHub API. We stream only what's needed without downloading gigabytes of repository data.</p>
             </div>
             <div class="card-hover p-6 rounded-3xl bg-white border border-[#E2E8F0] shadow-sm space-y-4">
                 <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center"><i class="fa-solid fa-shield-halved text-[#15803D] text-xl"></i></div>
                 <h3 class="text-sm font-bold text-[#0F172A]">Zero Design Risk</h3>
-                <p class="text-xs text-[#64748B] leading-relaxed">Automation should never introduce risk. Our surgical CSS-safe patching means layouts are mathematically guaranteed to be untouched.</p>
+                <p class="text-xs text-[#64748B] leading-relaxed">Automation should never break layout. Our surgical CSS-safe patching means styles, tags, and design systems remain 100% untouched.</p>
             </div>
             <div class="card-hover p-6 rounded-3xl bg-white border border-[#E2E8F0] shadow-sm space-y-4">
-                <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center"><i class="fa-solid fa-unlock text-[#15803D] text-xl"></i></div>
-                <h3 class="text-sm font-bold text-[#0F172A]">Open Architecture</h3>
-                <p class="text-xs text-[#64748B] leading-relaxed">Autoflow integrates with tools you already use — GitHub, cPanel, SMTP, Groq. No proprietary lock-in, no black boxes.</p>
+                <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center"><i class="fa-solid fa-layer-group text-[#15803D] text-xl"></i></div>
+                <h3 class="text-sm font-bold text-[#0F172A]">Chunked Queue Scaling</h3>
+                <p class="text-xs text-[#64748B] leading-relaxed">From 5-page landing sites to 1,000+ page enterprise web apps, jobs execute page-by-page asynchronously with zero server memory limits.</p>
             </div>
             <div class="card-hover p-6 rounded-3xl bg-white border border-[#E2E8F0] shadow-sm space-y-4">
-                <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center"><i class="fa-solid fa-headset text-[#15803D] text-xl"></i></div>
-                <h3 class="text-sm font-bold text-[#0F172A]">24/7 Reliability</h3>
-                <p class="text-xs text-[#64748B] leading-relaxed">Production uptime guaranteed with automatic fallback models, health monitoring, and instant email alerting.</p>
+                <div class="w-12 h-12 rounded-2xl bg-[#DCFCE7] flex items-center justify-center"><i class="fa-solid fa-code-commit text-[#15803D] text-xl"></i></div>
+                <h3 class="text-sm font-bold text-[#0F172A]">Instant CI/CD Deploys</h3>
+                <p class="text-xs text-[#64748B] leading-relaxed">Direct commits trigger immediate Vercel, Netlify, and Cloudflare Pages production deployments with full audit logs and instant rollbacks.</p>
             </div>
         </div>
     </div>

@@ -155,23 +155,39 @@
             <div data-reveal class="space-y-8">
                 <div class="space-y-4">
                     <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#DCFCE7] text-[#15803D] text-xs font-bold tracking-wide">
-                        <i class="fa-solid fa-code"></i>Technical Architecture
+                        <i class="fa-solid fa-cloud-bolt"></i>Cloud-Native Architecture
                     </div>
-                    <h2 class="text-3xl sm:text-4xl font-extrabold text-[#0F172A]">Built for reliability<br>at enterprise scale</h2>
-                    <p class="text-[#64748B] leading-relaxed">Autoflow is a Laravel 11 + Livewire 3 application with an isolated job pipeline. Each page rewrite runs with timeout protection, active validation, and comprehensive error logging.</p>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-[#0F172A]">In-Memory Processing &<br>Zero Server Disk Bloat</h2>
+                    <p class="text-[#64748B] leading-relaxed">Autoflow uses a streaming, cloud-native architecture powered by the GitHub REST API. Whether your project is 5 pages or 1,000+ pages with gigabytes of images and video assets, your server disk remains completely uncluttered.</p>
                 </div>
                 <div class="space-y-4">
                     <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs">
                         <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center text-[#15803D] shrink-0 font-bold text-sm">01</div>
-                        <div><h4 class="text-sm font-bold text-[#0F172A]">Safe DOM Parsing & Selective Replacement</h4><p class="text-xs text-[#64748B] mt-0.5">Autoflow extracts human-readable copy only. CSS stylesheets, animation classes, JavaScript handlers, and structural HTML divs remain 100% untouched.</p></div>
+                        <div>
+                            <h4 class="text-sm font-bold text-[#0F172A]">Direct In-Memory GitHub Fetch (Zero Local Clones)</h4>
+                            <p class="text-xs text-[#64748B] mt-0.5">Files are fetched on-demand into RAM via GitHub API without downloading bulky local git repositories, preserving 100% of your hosting disk storage.</p>
+                        </div>
                     </div>
                     <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs">
                         <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center text-[#15803D] shrink-0 font-bold text-sm">02</div>
-                        <div><h4 class="text-sm font-bold text-[#0F172A]">Smart Multi-Page Queue & Rate Throttling</h4><p class="text-xs text-[#64748B] mt-0.5">When refreshing 10, 50, or 100+ pages, jobs are processed in controlled async batches to avoid API rate limits and ensure maximum semantic quality on every page.</p></div>
+                        <div>
+                            <h4 class="text-sm font-bold text-[#0F172A]">Page-by-Page Granular Execution (Handles Large Sites)</h4>
+                            <p class="text-xs text-[#64748B] mt-0.5">Full website updates are divided into independent, lightweight page jobs (~20KB–100KB per HTML file). Heavy media (PNG/JPG/MP4) are ignored, eliminating PHP memory exhaustion and timeouts.</p>
+                        </div>
                     </div>
                     <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs">
                         <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center text-[#15803D] shrink-0 font-bold text-sm">03</div>
-                        <div><h4 class="text-sm font-bold text-[#0F172A]">Atomic Git Commits & Instant Rollbacks</h4><p class="text-xs text-[#64748B] mt-0.5">Batch updates are grouped into single atomic Git commits with complete visual diff tracking, branch protection, and single-click rollbacks.</p></div>
+                        <div>
+                            <h4 class="text-sm font-bold text-[#0F172A]">Safe DOM Parsing & Selective Text Replacement</h4>
+                            <p class="text-xs text-[#64748B] mt-0.5">Autoflow surgically extracts human-readable text only. CSS stylesheets, animation classes, JavaScript handlers, and structural layout tags remain mathematically untouched.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 p-4 rounded-2xl bg-white border border-[#E2E8F0] shadow-2xs">
+                        <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center text-[#15803D] shrink-0 font-bold text-sm">04</div>
+                        <div>
+                            <h4 class="text-sm font-bold text-[#0F172A]">Atomic GitHub Commits & Live CI/CD Triggers</h4>
+                            <p class="text-xs text-[#64748B] mt-0.5">Every approved revision is committed directly via GitHub API, instantly triggering your Vercel, Netlify, or Apache production deployments with 1-click rollback support.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -182,17 +198,22 @@
                 <div class="relative bg-[#0F172A] border border-slate-700 rounded-2xl overflow-hidden shadow-2xl">
                     <div class="flex items-center gap-2 px-5 py-3 bg-slate-800 border-b border-slate-700">
                         <div class="flex gap-1.5"><div class="w-3 h-3 rounded-full bg-rose-500/70"></div><div class="w-3 h-3 rounded-full bg-amber-500/70"></div><div class="w-3 h-3 rounded-full bg-emerald-500/70"></div></div>
-                        <span class="text-[11px] text-gray-400 font-mono ml-2"><i class="fa-regular fa-file-code mr-1"></i>JobExecutionService.php</span>
+                        <span class="text-[11px] text-gray-400 font-mono ml-2"><i class="fa-regular fa-file-code mr-1"></i>JobExecutionService.php (Cloud Pipeline)</span>
                     </div>
-                    <div class="p-5 font-mono text-[11px] leading-relaxed space-y-1 overflow-x-auto">
-                        <div><span class="text-emerald-400">$prompt</span> <span class="text-gray-400">=</span> <span class="text-[#22C55E]">"Rewrite this website copy..."</span><span class="text-gray-400">;</span></div>
-                        <div class="pl-4 text-gray-400">// Model: Groq Llama 3.3 70B (JSON mode)</div>
-                        <div><span class="text-emerald-400">$res</span> <span class="text-gray-400">=</span> <span class="text-blue-400">Http</span><span class="text-gray-400">::</span><span class="text-yellow-300">post</span><span class="text-gray-400">(</span><span class="text-[#22C55E]">'groq/chat'</span><span class="text-gray-400">, [...]);</span></div>
-                        <div class="mt-2 text-gray-500">// Surgical DOM Text Replacement</div>
-                        <div><span class="text-emerald-400">$html</span> <span class="text-gray-400">=</span> <span class="text-yellow-300">str_replace</span><span class="text-gray-400">(</span><span class="text-purple-300">$oldSegment</span><span class="text-gray-400">, </span><span class="text-purple-300">$newSegment</span><span class="text-gray-400">, </span><span class="text-purple-300">$html</span><span class="text-gray-400">);</span></div>
-                        <div class="mt-2 text-gray-500">// Git Commit & Remote Push</div>
-                        <div><span class="text-yellow-300">shell_exec</span><span class="text-gray-400">(</span><span class="text-[#22C55E]">"git add . && git commit && git push"</span><span class="text-gray-400">);</span></div>
-                        <div class="mt-2 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-[#22C55E] pulse-dot inline-block"></span><span class="text-[#22C55E]">// Job complete. Live website updated.</span></div>
+                    <div class="p-5 font-mono text-[11px] leading-relaxed space-y-1.5 overflow-x-auto">
+                        <div class="text-gray-500">// 1. In-Memory Stream from GitHub API (Zero Local Disk Storage)</div>
+                        <div><span class="text-emerald-400">$rawHtml</span> <span class="text-gray-400">=</span> <span class="text-blue-400">$githubApi</span><span class="text-gray-400">-></span><span class="text-yellow-300">getFileContent</span><span class="text-gray-400">(</span><span class="text-emerald-400">$website</span><span class="text-gray-400">, </span><span class="text-purple-300">$page->path</span><span class="text-gray-400">);</span></div>
+                        
+                        <div class="pt-2 text-gray-500">// 2. High-speed AI Neural Rewrite (Groq / Claude / OpenAI)</div>
+                        <div><span class="text-emerald-400">$rewritten</span> <span class="text-gray-400">=</span> <span class="text-blue-400">$aiService</span><span class="text-gray-400">-></span><span class="text-yellow-300">rewriteSegments</span><span class="text-gray-400">(</span><span class="text-emerald-400">$rawHtml</span><span class="text-gray-400">);</span></div>
+                        
+                        <div class="pt-2 text-gray-500">// 3. Surgical DOM Replacement (Zero CSS/Layout Alterations)</div>
+                        <div><span class="text-emerald-400">$cleanHtml</span> <span class="text-gray-400">=</span> <span class="text-yellow-300">str_replace</span><span class="text-gray-400">(</span><span class="text-purple-300">$oldText</span><span class="text-gray-400">, </span><span class="text-purple-300">$newText</span><span class="text-gray-400">, </span><span class="text-emerald-400">$rawHtml</span><span class="text-gray-400">);</span></div>
+                        
+                        <div class="pt-2 text-gray-500">// 4. Direct Cloud Commit (Triggers Live Vercel / Netlify Builds)</div>
+                        <div><span class="text-blue-400">$githubApi</span><span class="text-gray-400">-></span><span class="text-yellow-300">updateFile</span><span class="text-gray-400">(</span><span class="text-emerald-400">$website</span><span class="text-gray-400">, </span><span class="text-purple-300">$page->path</span><span class="text-gray-400">, </span><span class="text-emerald-400">$cleanHtml</span><span class="text-gray-400">);</span></div>
+                        
+                        <div class="pt-2 flex items-center gap-2 text-xs font-semibold"><span class="w-2 h-2 rounded-full bg-[#22C55E] pulse-dot inline-block"></span><span class="text-[#22C55E]">// 100% Autonomous. Vercel/Netlify deployment triggered!</span></div>
                     </div>
                 </div>
             </div>
