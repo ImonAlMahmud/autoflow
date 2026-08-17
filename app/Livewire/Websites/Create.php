@@ -32,9 +32,9 @@ class Create extends Component
 
     public function mount()
     {
-        // Keep inputs clean for user entry
-        $this->git_author_name = \App\Models\SystemSetting::get('global_github_author_name', '') ?? '';
-        $this->git_author_email = \App\Models\SystemSetting::get('global_github_author_email', '') ?? '';
+        // Keep inputs 100% clean and blank for new entries
+        $this->git_author_name = '';
+        $this->git_author_email = '';
     }
 
     protected function rules(): array
