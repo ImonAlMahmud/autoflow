@@ -1,7 +1,7 @@
 <aside
     x-cloak
     :class="sidebarOpen ? 'w-64' : 'w-20'"
-    class="relative z-30 flex flex-col flex-shrink-0 bg-white border-r border-[#EAECF0] transition-all duration-300 ease-in-out select-none shadow-sidebar min-h-screen"
+    class="relative z-30 flex flex-col flex-shrink-0 bg-white border-r border-[#EAECF0] transition-all duration-300 ease-in-out select-none shadow-sidebar h-screen sticky top-0 overflow-hidden"
 >
     <!-- Brand Header -->
     <div class="flex items-center justify-between h-16 px-4 border-b border-[#E2E8F0] bg-white">
@@ -21,7 +21,7 @@
     </div>
 
     <!-- Navigation Scroll Container -->
-    <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+    <div class="flex-1 overflow-y-auto px-3 py-4 space-y-6 custom-scrollbar">
         
         <!-- SECTION 1: MAIN NAVIGATION -->
         <div>
