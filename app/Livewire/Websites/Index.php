@@ -32,7 +32,8 @@ class Index extends Component
         $user = auth()->user();
         $query = Website::withCount('pages');
 
-        if ($user && !$user->isSuperAdmin()) {
+        // Only show websites owned by the logged in user (Super Admin has a dedicated panel for all client sites)
+        if ($user) {
             $query->where('user_id', $user->id);
         }
 

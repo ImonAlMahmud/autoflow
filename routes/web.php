@@ -102,6 +102,7 @@ Route::middleware(['auth'])->group(function () {
     // Super Admin Routes (God of application)
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', \App\Livewire\Admin\UsersIndex::class)->name('users');
+        Route::get('/websites', \App\Livewire\Admin\AllWebsites::class)->name('websites');
     });
 });
 

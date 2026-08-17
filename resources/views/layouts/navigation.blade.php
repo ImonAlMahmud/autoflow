@@ -150,6 +150,19 @@
                     @endif
                 </a>
 
+                <!-- All Users' Websites (Super Admin Directory) -->
+                <a
+                    href="{{ route('admin.websites') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 {{ request()->routeIs('admin.websites') ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#0F172A] bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/60' }}"
+                    :title="!sidebarOpen ? 'All Users Websites' : ''"
+                >
+                    <i class="fa-solid fa-network-wired w-5 text-center text-sm flex-shrink-0 transition-colors {{ request()->routeIs('admin.websites') ? 'text-[#22C55E]' : 'text-amber-600' }}"></i>
+                    <span x-show="sidebarOpen" class="truncate flex-1">All Users' Sites</span>
+                    @if(request()->routeIs('admin.websites'))
+                        <span class="absolute right-2.5 w-2 h-2 rounded-full bg-[#22C55E]"></span>
+                    @endif
+                </a>
+
                 <!-- System Health (Only for Super Admin) -->
                 <a
                     href="{{ route('system-health') }}"
