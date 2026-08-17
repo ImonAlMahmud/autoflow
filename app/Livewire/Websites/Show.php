@@ -9,16 +9,12 @@ use Livewire\Component;
 class Show extends Component
 {
     public $websiteId;
-    public $website;
     public string $activeTab = 'pages';
     public string $searchPage = '';
 
     public function mount($website = null)
     {
         $this->websiteId = is_object($website) ? $website->id : $website;
-        if ($this->websiteId) {
-            $this->website = Website::withCount('pages')->find($this->websiteId);
-        }
     }
 
     public function triggerFullSync()
@@ -28,14 +24,15 @@ class Show extends Component
 
     public function runAudit()
     {
-        if (!$this->website) return;
+        $website = Website::find($this->websiteId);
+        if (!$website) return;
 
         $scannedCount = 0;
 
         // 1. If GitHub Repository is configured, scan remote repository files via GitHub API
-        if (!empty($this->website->git_repository_url)) {
+        if (!empty($website->git_repository_url)) {
             $githubApi = new \App\Services\GithubApiService();
-            $htmlFiles = $githubApi->listHtmlFiles($this->website);
+            $htmlFiles = $githubApi->listHtmlFiles($website);
 
             foreach ($htmlFiles as $rel) {
                 $cleanName = trim(str_replace(['.html', '-', '_'], ['', ' ', ' '], $rel), '/ ');
@@ -44,13 +41,13 @@ class Show extends Component
 
                 WebsitePage::firstOrCreate(
                     [
-                        'website_id' => $this->website->id,
+                        'website_id' => $website->id,
                         'path' => $rel,
                     ],
                     [
                         'friendly_name' => $friendlyName ?: 'Home Page',
                         'rewrite_enabled' => true,
-                        'rewrite_interval_days' => $this->website->default_rewrite_interval_days ?? 5,
+                        'rewrite_interval_days' => $website->default_rewrite_interval_days ?? 5,
                     ]
                 );
                 $scannedCount++;
@@ -58,7 +55,7 @@ class Show extends Component
         }
 
         // 2. Local Directory Deep Scan fallback (if local folder is provided)
-        $dir = !empty($this->website->local_production_path) ? rtrim($this->website->local_production_path, '/\\') : null;
+        $dir = !empty($website->local_production_path) ? rtrim($website->local_production_path, '/\\') : null;
         
         if ($dir && is_dir($dir)) {
             $iterator = new \RecursiveIteratorIterator(
@@ -79,13 +76,13 @@ class Show extends Component
 
                     WebsitePage::firstOrCreate(
                         [
-                            'website_id' => $this->website->id,
+                            'website_id' => $website->id,
                             'path' => $rel,
                         ],
                         [
                             'friendly_name' => $friendlyName ?: 'Home Page',
                             'rewrite_enabled' => true,
-                            'rewrite_interval_days' => $this->website->default_rewrite_interval_days ?? 5,
+                            'rewrite_interval_days' => $website->default_rewrite_interval_days ?? 5,
                         ]
                     );
                     $scannedCount++;
@@ -93,7 +90,6 @@ class Show extends Component
             }
         }
 
-        $this->website->loadCount('pages');
         $this->dispatch('toast', title: 'Deep Audit Completed 🚀', message: "Discovered and registered {$scannedCount} HTML pages from GitHub repository.", type: 'success');
     }
 
@@ -108,10 +104,11 @@ class Show extends Component
 
     public function render()
     {
+        $website = Website::withCount('pages')->find($this->websiteId);
         $pages = collect();
 
-        if ($this->website) {
-            $query = WebsitePage::where('website_id', $this->website->id);
+        if ($website) {
+            $query = WebsitePage::where('website_id', $website->id);
             if (!empty($this->searchPage)) {
                 $query->where('path', 'like', "%{$this->searchPage}%");
             }
@@ -119,7 +116,7 @@ class Show extends Component
         }
 
         return view('livewire.websites.show', [
-            'website' => $this->website,
+            'website' => $website,
             'pages' => $pages,
         ]);
     }
