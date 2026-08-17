@@ -5,18 +5,36 @@ namespace App\Livewire\Pages;
 use App\Models\Website;
 use App\Models\WebsitePage;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
     public array $selectedPages = [];
     public bool $selectAll = false;
     public string $search = '';
     public string $websiteFilter = 'all';
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingWebsiteFilter()
+    {
+        $this->resetPage();
+    }
+
     public function updatedSelectAll($value)
     {
         if ($value) {
-            $this->selectedPages = WebsitePage::pluck('id')->toArray();
+            $user = auth()->user();
+            $query = WebsitePage::query();
+            if ($user) {
+                $query->whereHas('website', fn($q) => $q->where('user_id', $user->id));
+            }
+            $this->selectedPages = $query->pluck('id')->toArray();
         } else {
             $this->selectedPages = [];
         }
@@ -38,12 +56,12 @@ class Index extends Component
     public function render()
     {
         $user = auth()->user();
-        $isSuper = $user && $user->isSuperAdmin();
 
         $websitesQuery = Website::query();
-        $pagesQuery = WebsitePage::with('website')->latest();
+        $pagesQuery = WebsitePage::with(['website', 'aiModel.provider'])->latest();
 
-        if (!$isSuper && $user) {
+        // Isolate so user (even Super Admin on regular page) only sees their own website pages
+        if ($user) {
             $websitesQuery->where('user_id', $user->id);
             $pagesQuery->whereHas('website', fn($q) => $q->where('user_id', $user->id));
         }
@@ -61,7 +79,7 @@ class Index extends Component
             $pagesQuery->where('website_id', $this->websiteFilter);
         }
 
-        $pages = $pagesQuery->get();
+        $pages = $pagesQuery->paginate(20);
 
         return view('livewire.pages.index', [
             'pages' => $pages,

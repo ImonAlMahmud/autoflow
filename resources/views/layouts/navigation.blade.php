@@ -163,6 +163,19 @@
                     @endif
                 </a>
 
+                <!-- All Users' Tracked Pages (Super Admin Directory) -->
+                <a
+                    href="{{ route('admin.pages') }}"
+                    class="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 {{ request()->routeIs('admin.pages') ? 'bg-[#0F172A] text-white shadow-xs' : 'text-[#0F172A] bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/60' }}"
+                    :title="!sidebarOpen ? 'All Users Pages' : ''"
+                >
+                    <i class="fa-solid fa-file-lines w-5 text-center text-sm flex-shrink-0 transition-colors {{ request()->routeIs('admin.pages') ? 'text-[#22C55E]' : 'text-amber-600' }}"></i>
+                    <span x-show="sidebarOpen" class="truncate flex-1">All Users' Pages</span>
+                    @if(request()->routeIs('admin.pages'))
+                        <span class="absolute right-2.5 w-2 h-2 rounded-full bg-[#22C55E]"></span>
+                    @endif
+                </a>
+
                 <!-- System Health (Only for Super Admin) -->
                 <a
                     href="{{ route('system-health') }}"

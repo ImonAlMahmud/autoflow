@@ -23,7 +23,12 @@ class Index extends Component
 
     public function mount()
     {
-        $firstWebsite = Website::first();
+        $user = auth()->user();
+        $firstWebsiteQuery = Website::query();
+        if ($user) {
+            $firstWebsiteQuery->where('user_id', $user->id);
+        }
+        $firstWebsite = $firstWebsiteQuery->first();
         if ($firstWebsite) {
             $this->selectedWebsiteId = $firstWebsite->id;
             $firstPage = WebsitePage::where('website_id', $firstWebsite->id)->first();
@@ -35,6 +40,7 @@ class Index extends Component
 
     public function updatedSelectedWebsiteId($val)
     {
+        $this->selectedWebsiteId = (int)$val;
         $firstPage = WebsitePage::where('website_id', $val)->first();
         $this->selectedPageId = $firstPage?->id;
     }
@@ -269,14 +275,29 @@ class Index extends Component
         $modelsQuery = AiModel::query();
         $jobsQuery = RewriteJob::with(['website', 'page', 'aiModel'])->latest();
 
-        if (!$isSuper && $user) {
+        if ($user) {
             $websitesQuery->where('user_id', $user->id);
-            $modelsQuery->whereHas('provider', fn($q) => $q->where('user_id', $user->id));
             $jobsQuery->whereHas('website', fn($q) => $q->where('user_id', $user->id));
         }
 
+        if (!$isSuper && $user) {
+            $modelsQuery->whereHas('provider', function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereNull('user_id')
+                  ->orWhereHas('user', fn($sq) => $sq->where('role', 'superadmin'));
+            });
+        }
+
         $websites = $websitesQuery->withCount('rewriteJobs')->get();
-        $availablePages = $this->selectedWebsiteId ? WebsitePage::where('website_id', $this->selectedWebsiteId)->get() : collect();
+        
+        // If selectedWebsiteId is not set or not in websites list, take the first available
+        if (!$this->selectedWebsiteId && $websites->isNotEmpty()) {
+            $this->selectedWebsiteId = $websites->first()->id;
+        }
+
+        $availablePages = $this->selectedWebsiteId 
+            ? WebsitePage::where('website_id', $this->selectedWebsiteId)->orderBy('path')->get() 
+            : collect();
         $aiModels = $modelsQuery->get();
 
         if ($this->websiteFilter) {

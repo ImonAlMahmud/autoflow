@@ -80,7 +80,14 @@
                                 <span class="text-[10px] text-[#667085] font-mono">{{ $page->website->domain ?? ($page->domain ?? 'techcorp.io') }}</span>
                             </td>
                             <td class="py-3.5 px-4 font-medium text-[#344054]">
-                                {{ number_format($page->word_count ?? 1240) }} words
+                                @php
+                                    $wordCount = $page->word_count ?? null;
+                                @endphp
+                                @if($wordCount)
+                                    {{ number_format($wordCount) }} words
+                                @else
+                                    <span class="text-gray-400 italic text-[11px]">Auto on run</span>
+                                @endif
                             </td>
                             <td class="py-3.5 px-4 text-[#667085]">
                                 @if(isset($page->last_rewrite_at) && $page->last_rewrite_at)
@@ -95,12 +102,15 @@
                                         {{ is_string($page->next_rewrite_at) ? $page->next_rewrite_at : $page->next_rewrite_at->diffForHumans() }}
                                     </span>
                                 @else
-                                    <span class="px-2 py-0.5 rounded bg-gray-50 text-[#667085] font-medium border border-gray-200">Disabled</span>
+                                    <span class="px-2 py-0.5 rounded bg-gray-50 text-[#667085] font-medium border border-gray-200">On Schedule</span>
                                 @endif
                             </td>
                             <td class="py-3.5 px-4">
-                                <span class="px-2 py-0.5 text-[10px] rounded font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-                                    {{ $page->ai_model ?? 'GPT-4o' }}
+                                @php
+                                    $modelDisplayName = $page->aiModel?->name ?? ($page->website?->defaultAiModel?->name ?? 'Llama 3.3 70B');
+                                @endphp
+                                <span class="px-2 py-0.5 text-[10px] rounded font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    {{ $modelDisplayName }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-right">
@@ -127,9 +137,15 @@
             </table>
         </div>
 
-        <div class="px-4 py-3 bg-[#F9FAFB] border-t border-[#EAECF0] flex items-center justify-between text-xs text-[#667085]">
-            <span>Showing {{ count($pages) }} tracked pages</span>
-            <span>Autoflow Page Engine</span>
-        </div>
+        @if($pages->hasPages())
+            <div class="px-4 py-3 bg-[#F9FAFB] border-t border-[#EAECF0]">
+                {{ $pages->links() }}
+            </div>
+        @else
+            <div class="px-4 py-3 bg-[#F9FAFB] border-t border-[#EAECF0] flex items-center justify-between text-xs text-[#667085]">
+                <span>Showing {{ $pages->total() }} tracked pages</span>
+                <span>Autoflow Page Engine</span>
+            </div>
+        @endif
     </div>
 </div>
