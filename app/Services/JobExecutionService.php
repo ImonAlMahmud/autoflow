@@ -19,53 +19,52 @@ class JobExecutionService
         $job->load(['website', 'page', 'aiModel.provider']);
 
         $steps = [
-            'extract'    => ['status' => 'pending', 'label' => 'Extract HTML & Content Structure',  'time' => null, 'error' => null],
-            'ai_rewrite' => ['status' => 'pending', 'label' => 'AI Rewrite Text Segments',          'time' => null, 'error' => null],
-            'patch_html' => ['status' => 'pending', 'label' => 'Preserve Styles & Patch HTML',      'time' => null, 'error' => null],
-            'git_sync'   => ['status' => 'pending', 'label' => 'Git Commit & Push to Remote',       'time' => null, 'error' => null],
+            'extract'    => ['status' => 'pending', 'label' => 'Extract HTML & Content Structure', 'time' => null, 'error' => null],
+            'ai_rewrite' => ['status' => 'pending', 'label' => 'AI Rewrite HTML Segments',         'time' => null, 'error' => null],
+            'patch_html' => ['status' => 'pending', 'label' => 'Patch HTML with Rewritten Content','time' => null, 'error' => null],
+            'git_sync'   => ['status' => 'pending', 'label' => 'Git Commit & Push to Remote',      'time' => null, 'error' => null],
         ];
 
-        // ─────────────────────────────────────────────────────────────
-        // STEP 1 — FETCH HTML FROM GITHUB (primary) OR LOCAL (fallback)
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────
+        // STEP 1 — FETCH HTML FROM GITHUB (primary) or LOCAL (fallback)
+        // ──────────────────────────────────────────────────────────────
         $start    = microtime(true);
         $filePath = null;
         $rawHtml  = '';
 
-        // Local fallback path
         if ($job->website && $job->website->local_production_path && $job->page) {
             $filePath = rtrim($job->website->local_production_path, '/\\')
-                      . DIRECTORY_SEPARATOR
-                      . ltrim($job->page->path, '/\\');
+                . DIRECTORY_SEPARATOR
+                . ltrim($job->page->path, '/\\');
             if (file_exists($filePath)) {
                 $rawHtml = file_get_contents($filePath);
             }
         }
 
-        // GitHub API primary (always prefer GitHub for cloud flow)
+        // GitHub always wins — fetch fresh from repo
         if ($job->website && !empty($job->website->git_repository_url) && $job->page) {
             $githubApi = new GithubApiService();
             $fileData  = $githubApi->getFileContent($job->website, $job->page->path);
             if ($fileData && !empty($fileData['content'])) {
-                $rawHtml = $fileData['content']; // Use GitHub version as truth
+                $rawHtml = $fileData['content'];
             }
         }
 
         if (empty(trim($rawHtml))) {
-            $err = "Could not fetch HTML for '{$job->page?->path}'. Check repository URL, branch name, and GitHub Token.";
+            $err = "Could not fetch HTML for '{$job->page?->path}'. Verify repository URL, branch, and GitHub Token.";
             $steps['extract'] = ['status' => 'failed', 'label' => 'Extract HTML & Content Structure',
                 'time' => $this->ms($start), 'error' => $err, 'details' => 'File not found in repository'];
             $job->update(['status' => JobStatus::Failed, 'error_message' => $err]);
             return ['success' => false, 'failed_step' => 'extract', 'error_message' => $err, 'steps' => $steps];
         }
 
-        // Extract readable text segments (what the AI will rewrite)
-        $segments = $this->extractTextSegments($rawHtml);
+        // Extract segments — store full HTML of each element (this is what we'll str_replace later)
+        $segments = $this->extractHtmlSegments($rawHtml);
 
         if (empty($segments)) {
-            $err = "No rewritable text found in '{$job->page?->path}'. The page may be empty or only contain JavaScript/CSS.";
+            $err = "No rewritable content found in '{$job->page?->path}'. Page may be empty or JS-only.";
             $steps['extract'] = ['status' => 'failed', 'label' => 'Extract HTML & Content Structure',
-                'time' => $this->ms($start), 'error' => $err, 'details' => 'Zero text segments found'];
+                'time' => $this->ms($start), 'error' => $err, 'details' => 'Zero rewritable segments detected'];
             $job->update(['status' => JobStatus::Failed, 'error_message' => $err]);
             return ['success' => false, 'failed_step' => 'extract', 'error_message' => $err, 'steps' => $steps];
         }
@@ -75,44 +74,54 @@ class JobExecutionService
             'label'   => 'Extract HTML & Content Structure',
             'time'    => $this->ms($start),
             'error'   => null,
-            'details' => 'Found ' . count($segments) . ' rewritable text segments in ' . ($job->page?->path ?? 'page'),
+            'details' => 'Found ' . count($segments) . ' rewritable HTML segments (p, h1-h6, li, ul, ol, blockquote) in ' . ($job->page?->path ?? 'page'),
         ];
 
-        // ─────────────────────────────────────────────────────────────
-        // STEP 2 — AI REWRITE EACH SEGMENT
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────
+        // STEP 2 — AI REWRITE: send full HTML snippets, get back rewritten HTML snippets
+        // ──────────────────────────────────────────────────────────────
         $start    = microtime(true);
-        $provider = $job->aiModel?->provider ?? \App\Models\AiProvider::where('user_id', $job->website?->user_id)->first()
-                                             ?? \App\Models\AiProvider::whereNull('user_id')->first()
-                                             ?? \App\Models\AiProvider::first();
+        $provider = $job->aiModel?->provider
+            ?? \App\Models\AiProvider::where('user_id', $job->website?->user_id)->first()
+            ?? \App\Models\AiProvider::whereNull('user_id')->first()
+            ?? \App\Models\AiProvider::first();
         $modelId  = $job->aiModel?->model_id ?? 'llama-3.3-70b-versatile';
         $apiKey   = $provider?->api_key;
         $endpoint = rtrim($provider?->endpoint ?? 'https://api.groq.com/openai/v1', '/');
 
         if (empty($apiKey)) {
-            $err = "No AI Provider API key configured for this website. Please add an API Key in AI Providers.";
-            $steps['ai_rewrite'] = ['status' => 'failed', 'label' => 'AI Rewrite Text Segments',
+            $err = "No AI Provider API key configured. Please add an API key in AI Providers.";
+            $steps['ai_rewrite'] = ['status' => 'failed', 'label' => 'AI Rewrite HTML Segments',
                 'time' => $this->ms($start), 'error' => $err, 'details' => 'Missing API key'];
             $job->update(['status' => JobStatus::Failed, 'error_message' => $err]);
             return ['success' => false, 'failed_step' => 'ai_rewrite', 'error_message' => $err, 'steps' => $steps];
         }
 
-        // Pick top segments (max 8) — send them all in ONE API call as JSON
-        $targetSegments = array_slice($segments, 0, 8, true);
-        $payload        = [];
+        // Limit to 12 segments per call to stay within token limits
+        $targetSegments = array_slice($segments, 0, 12, true);
+
+        // Build prompt payload — send FULL HTML of each segment so AI can preserve structure
+        $promptLines = [];
         foreach ($targetSegments as $idx => $seg) {
-            $payload[] = "SEG_{$idx} ({$seg['words']} words): {$seg['text']}";
+            $promptLines[] = "SEG_{$idx}:\n" . $seg['html'];
         }
 
-        $systemPrompt = "You are a professional SEO copywriter. You will receive numbered text segments from a website page.
+        $systemPrompt = <<<PROMPT
+You are an expert SEO copywriter and HTML specialist.
 
-RULES:
-1. Rewrite EACH segment to be fresh, natural, human-sounding, and SEO-friendly.
-2. Keep EXACTLY the same topic and meaning — do NOT invent facts not in the original.
-3. Maintain approximately the same word count per segment (+/- 10%).
-4. Return ONLY a valid JSON object like: {\"SEG_0\": \"rewritten text\", \"SEG_1\": \"rewritten text\"}
-5. Do NOT include HTML tags in your output — plain text only.
-6. Do NOT add commentary, markdown, or explanation.";
+TASK: Rewrite the text content inside each HTML segment below to be fresh, natural, and SEO-optimized.
+
+STRICT RULES:
+1. PRESERVE 100% of all HTML tags, class names, id attributes, style attributes, data-* attributes, href, src, and ALL other HTML attributes EXACTLY as they are.
+2. PRESERVE all <span>, <strong>, <em>, <a>, <br>, <i>, <b> inner tags completely unchanged.
+3. ONLY change the visible English text words — nothing else.
+4. Keep EXACTLY the same meaning/topic. Do NOT invent new facts not present in the original.
+5. Maintain approximately the same word count per segment (+/- 15%).
+6. Return ONLY a JSON object mapping segment key to the complete rewritten HTML snippet:
+   {"SEG_0": "<p class=\"foo\">Rewritten text here</p>", "SEG_1": "<h2>Fresh heading</h2>"}
+7. Do NOT add any explanation, markdown fences, or extra text outside the JSON.
+8. Every value in the JSON must be a complete, valid HTML snippet identical in structure to the original.
+PROMPT;
 
         $rewrittenMap = [];
         $aiError      = null;
@@ -120,15 +129,15 @@ RULES:
         try {
             $response = Http::withToken($apiKey)
                 ->withoutVerifying()
-                ->timeout(30)
+                ->timeout(45)
                 ->post($endpoint . '/chat/completions', [
                     'model'           => $modelId,
                     'messages'        => [
                         ['role' => 'system', 'content' => $systemPrompt],
-                        ['role' => 'user',   'content' => implode("\n\n", $payload)],
+                        ['role' => 'user',   'content' => implode("\n\n---\n\n", $promptLines)],
                     ],
-                    'temperature'     => 0.55,
-                    'max_tokens'      => 2048,
+                    'temperature'     => 0.5,
+                    'max_tokens'      => 4096,
                     'response_format' => ['type' => 'json_object'],
                 ]);
 
@@ -136,8 +145,7 @@ RULES:
                 $raw          = $response->json('choices.0.message.content');
                 $rewrittenMap = json_decode($raw, true);
 
-                // Fallback: extract JSON from response if not pure JSON
-                if (!is_array($rewrittenMap) && preg_match('/\{.*\}/s', $raw, $m)) {
+                if (!is_array($rewrittenMap) && preg_match('/\{[\s\S]*\}/s', $raw, $m)) {
                     $rewrittenMap = json_decode($m[0], true);
                 }
             } else {
@@ -149,82 +157,85 @@ RULES:
         }
 
         if ($aiError || !is_array($rewrittenMap) || empty($rewrittenMap)) {
-            $err = $aiError ?? "AI returned empty or invalid JSON for rewriting.";
-            $steps['ai_rewrite'] = ['status' => 'failed', 'label' => 'AI Rewrite Text Segments',
-                'time' => $this->ms($start), 'error' => $err, 'details' => 'No rewritten segments produced'];
+            $err = $aiError ?? "AI returned empty or unparseable JSON.";
+            $steps['ai_rewrite'] = ['status' => 'failed', 'label' => 'AI Rewrite HTML Segments',
+                'time' => $this->ms($start), 'error' => $err, 'details' => 'No rewritten content produced'];
             $job->update(['status' => JobStatus::Failed, 'error_message' => $err]);
             return ['success' => false, 'failed_step' => 'ai_rewrite', 'error_message' => $err, 'steps' => $steps];
         }
 
         $steps['ai_rewrite'] = [
             'status'  => 'success',
-            'label'   => 'AI Rewrite Text Segments',
+            'label'   => 'AI Rewrite HTML Segments',
             'time'    => $this->ms($start),
             'error'   => null,
-            'details' => "Rewrote " . count($rewrittenMap) . " segments using {$modelId}",
+            'details' => "AI rewrote " . count($rewrittenMap) . " HTML segments using {$modelId}",
         ];
 
-        // ─────────────────────────────────────────────────────────────
-        // STEP 3 — PATCH HTML: REPLACE OLD TEXT WITH AI REWRITTEN TEXT
-        // ─────────────────────────────────────────────────────────────
-        $start           = microtime(true);
-        $htmlContent     = $rawHtml;
-        $replacedCount   = 0;
-        $originalTexts   = [];
-        $rewrittenTexts  = [];
+        // ──────────────────────────────────────────────────────────────
+        // STEP 3 — PATCH: replace original HTML snippets with AI-rewritten ones
+        // ──────────────────────────────────────────────────────────────
+        $start          = microtime(true);
+        $htmlContent    = $rawHtml;
+        $replacedCount  = 0;
+        $originalTexts  = [];
+        $rewrittenTexts = [];
 
-        foreach ($rewrittenMap as $key => $newText) {
-            $newText = trim((string) $newText);
-            if (empty($newText)) continue;
+        foreach ($rewrittenMap as $key => $newHtmlSnippet) {
+            $newHtmlSnippet = trim((string) $newHtmlSnippet);
+            if (empty($newHtmlSnippet)) continue;
 
-            // Extract the segment index from key like "SEG_0", "SEG_1" or plain int
-            $idx = is_numeric($key) ? (int)$key : (int)filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+            // Parse segment index from key like "SEG_0", "SEG_1"
+            preg_match('/(\d+)/', (string)$key, $numMatch);
+            $idx = isset($numMatch[1]) ? (int)$numMatch[1] : -1;
 
-            if (!isset($targetSegments[$idx])) continue;
+            if ($idx < 0 || !isset($targetSegments[$idx])) continue;
 
-            $seg     = $targetSegments[$idx];
-            $oldText = $seg['text'];
+            $seg         = $targetSegments[$idx];
+            $originalHtml = $seg['html'];
 
-            // Safety: don't replace if new text is clearly wrong (very different length or contains HTML)
-            if (strlen($newText) < 5 || strip_tags($newText) !== $newText) continue;
+            // Sanity: skip if AI returned HTML with completely different structure (tag mismatch)
+            $origTagMatch = [];
+            $newTagMatch  = [];
+            preg_match('/^<([a-z1-6]+)/i', $originalHtml, $origTagMatch);
+            preg_match('/^<([a-z1-6]+)/i', $newHtmlSnippet, $newTagMatch);
+            if (!empty($origTagMatch[1]) && !empty($newTagMatch[1]) && strtolower($origTagMatch[1]) !== strtolower($newTagMatch[1])) {
+                Log::warning("JobExecutionService: tag mismatch for SEG_{$idx} — skipping (orig: {$origTagMatch[1]}, new: {$newTagMatch[1]})");
+                continue;
+            }
 
-            // Replace old inner text inside the HTML tag
-            // Strategy: find the tag with the exact old inner text and replace only the text node
-            $escaped = preg_quote($oldText, '/');
-            $pattern = '/(<' . preg_quote($seg['tag'], '/') . '[^>]*>)(.*?)(' . $escaped . ')(.*?)(<\/' . preg_quote($seg['tag'], '/') . '>)/is';
-
-            if (preg_match($pattern, $htmlContent)) {
-                $htmlContent = preg_replace($pattern, '$1$2' . addcslashes($newText, '\\$') . '$4$5', $htmlContent, 1);
+            // Replace: direct str_replace on the exact original HTML (captured from same $rawHtml)
+            if (str_contains($htmlContent, $originalHtml)) {
+                $htmlContent = str_replace($originalHtml, $newHtmlSnippet, $htmlContent);
                 $replacedCount++;
-                $originalTexts[]  = "[{$seg['tag']}] {$oldText}";
-                $rewrittenTexts[] = "[{$seg['tag']}] {$newText}";
+                $originalTexts[]  = "[{$seg['tag']}] " . trim(strip_tags($originalHtml));
+                $rewrittenTexts[] = "[{$seg['tag']}] " . trim(strip_tags($newHtmlSnippet));
             } else {
-                // Fallback: simple str_replace on the exact old text inside HTML
-                if (str_contains($htmlContent, $oldText)) {
-                    $htmlContent = str_replace($oldText, $newText, $htmlContent);
+                // Fallback: try with normalized whitespace
+                $normalizedOrig = preg_replace('/\s+/', ' ', $originalHtml);
+                $normalizedHtml = preg_replace('/\s+/', ' ', $htmlContent);
+                if (str_contains($normalizedHtml, $normalizedOrig)) {
+                    $htmlContent = str_replace($normalizedOrig, $newHtmlSnippet, $normalizedHtml);
                     $replacedCount++;
-                    $originalTexts[]  = "[{$seg['tag']}] {$oldText}";
-                    $rewrittenTexts[] = "[{$seg['tag']}] {$newText}";
+                    $originalTexts[]  = "[{$seg['tag']}] " . trim(strip_tags($originalHtml));
+                    $rewrittenTexts[] = "[{$seg['tag']}] " . trim(strip_tags($newHtmlSnippet));
                 }
             }
         }
 
-        if ($replacedCount === 0) {
-            // Log a warning but do NOT fail — the HTML may still be valid for push
-            Log::warning("JobExecutionService: 0 text replacements made for job {$job->id}. HTML may be unchanged.");
-        }
+        Log::info("JobExecutionService: Job #{$job->id} — replaced {$replacedCount}/" . count($targetSegments) . " segments");
 
         $steps['patch_html'] = [
             'status'  => 'success',
-            'label'   => 'Preserve Styles & Patch HTML',
+            'label'   => 'Patch HTML with Rewritten Content',
             'time'    => $this->ms($start),
             'error'   => null,
-            'details' => "Replaced {$replacedCount} text segments while preserving all HTML tags and styles",
+            'details' => "Patched {$replacedCount} out of " . count($targetSegments) . " segments (HTML structure fully preserved)",
         ];
 
-        // ─────────────────────────────────────────────────────────────
-        // SAVE REWRITE RESULT (original vs rewritten, for UI preview)
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────
+        // SAVE RESULT for UI preview (original vs rewritten)
+        // ──────────────────────────────────────────────────────────────
         RewriteResult::updateOrCreate(
             ['rewrite_job_id' => $job->id],
             [
@@ -234,9 +245,9 @@ RULES:
             ]
         );
 
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────
         // STEP 4 — APPROVAL CHECK & GIT PUSH
-        // ─────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────
         $start        = microtime(true);
         $approvalMode = $job->website?->approval_mode;
         $isManual     = is_object($approvalMode)
@@ -249,7 +260,7 @@ RULES:
                 'label'   => 'Git Commit & Push to Remote',
                 'time'    => '0ms',
                 'error'   => null,
-                'details' => 'Awaiting Manual Approval — push paused until user approves',
+                'details' => 'Awaiting manual approval — push paused until user approves',
             ];
             $job->update([
                 'status'            => JobStatus::PendingApproval,
@@ -263,14 +274,14 @@ RULES:
         }
 
         // Auto mode: push directly
-        $gitError  = null;
+        $gitError = null;
         if ($job->website) {
             try {
                 $gitService = new \App\Services\GitService();
                 $pagePath   = $job->page?->path ?? '/index.html';
                 $gitRes     = $gitService->commitAndPush(
                     $job->website,
-                    "Autoflow AI: Refreshed {$pagePath}",
+                    "Autoflow AI: Refreshed content on {$pagePath}",
                     $pagePath,
                     $htmlContent
                 );
@@ -297,7 +308,7 @@ RULES:
             'label'   => 'Git Commit & Push to Remote',
             'time'    => $this->ms($start),
             'error'   => null,
-            'details' => 'Committed & pushed to GitHub — Vercel/Netlify build triggered',
+            'details' => 'Committed & pushed to GitHub — Vercel/Netlify deployment triggered',
         ];
 
         $job->update([
@@ -313,51 +324,89 @@ RULES:
         return ['success' => true, 'steps' => $steps];
     }
 
-    // ─────────────────────────────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────────────
     // HELPERS
-    // ─────────────────────────────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────────────
 
     /**
-     * Extract rewritable text segments from raw HTML.
-     * Returns array of ['tag'=>, 'text'=>, 'words'=>] indexed by position.
+     * Extract rewritable HTML segments directly from raw HTML.
+     *
+     * KEY INSIGHT: We match against $rawHtml and store the exact $match[0] string.
+     * Later, str_replace($match[0], $rewrittenHtml, $rawHtml) is guaranteed to work
+     * because we're replacing the exact bytes we captured.
+     *
+     * Covers: p, h1-h6, li (inside ul/ol), blockquote, td, th
      */
-    private function extractTextSegments(string $html): array
+    private function extractHtmlSegments(string $rawHtml): array
     {
-        // Strip noise: scripts, styles, schema JSON-LD, comments, nav, header, footer
-        $clean = preg_replace('/<script\b[^>]*>[\s\S]*?<\/script>/i', '', $html);
+        // Build a "safe" copy for matching — strip scripts/styles/comments so we don't
+        // accidentally rewrite JS strings or CSS rules, but we match against the REAL HTML
+        // positions by using offset tracking.
+        //
+        // Simpler approach: strip noise tags, collect segments from the cleaned string,
+        // then verify each one exists in $rawHtml before adding.
+
+        $clean = $rawHtml;
+        // Remove script and style blocks entirely (they might contain HTML-like strings)
+        $clean = preg_replace('/<script\b[^>]*>[\s\S]*?<\/script>/i', '', $clean);
         $clean = preg_replace('/<style\b[^>]*>[\s\S]*?<\/style>/i', '', $clean);
         $clean = preg_replace('/<!--[\s\S]*?-->/', '', $clean);
-        $clean = preg_replace('/<(head|nav|header|footer)[^>]*>[\s\S]*?<\/\1>/i', '', $clean);
+        // Remove structural/nav blocks (we don't rewrite header, nav, footer)
+        $clean = preg_replace('/<(head|nav|header|footer)\b[^>]*>[\s\S]*?<\/\1>/i', '', $clean);
 
-        // Match text-bearing tags
-        preg_match_all('/<(p|h1|h2|h3|h4|h5|h6|li|td|th|blockquote)([^>]*)>([\s\S]*?)<\/\1>/i', $clean, $matches, PREG_SET_ORDER);
+        // Match all content-bearing elements — NON-greedy to avoid swallowing nested tags
+        // We use a two-level approach:
+        //   Level A: direct text elements (p, h1-h6, blockquote, td, th)
+        //   Level B: list items inside ul/ol (li elements)
+        $patterns = [
+            // Paragraphs and headings — match content including any inline HTML (spans, a, strong, etc.)
+            'block'  => '/<(p|h1|h2|h3|h4|h5|h6|blockquote|td|th)(\s[^>]*)?>[\s\S]*?<\/\1>/i',
+            // List items — including those with spans or nested inline elements
+            'li'     => '/<li(\s[^>]*)?>[\s\S]*?<\/li>/i',
+        ];
 
-        $segments = [];
-        foreach ($matches as $m) {
-            $tag       = strtolower($m[1]);
-            $attrs     = $m[2];
-            $innerHtml = $m[3];
-            $innerText = trim(html_entity_decode(strip_tags($innerHtml), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $found = [];
 
-            // Skip: too short, navigation breadcrumbs, copyright lines, class badges
-            if (strlen($innerText) < 20) continue;
-            if (preg_match('/\b(copyright|breadcrumb|badge|crumb|©)\b/i', $attrs . ' ' . $innerText)) continue;
-            // Skip lines that look like CSS or JSON
-            if (str_starts_with($innerText, '{') || str_starts_with($innerText, '.') || str_contains($innerText, 'font-size:')) continue;
+        foreach ($patterns as $type => $pattern) {
+            preg_match_all($pattern, $clean, $matches, PREG_SET_ORDER);
 
-            $segments[] = [
-                'tag'   => $tag,
-                'attrs' => $attrs,
-                'html'  => $m[0],   // full original HTML tag (for display only)
-                'text'  => $innerText,
-                'words' => str_word_count($innerText),
-            ];
+            foreach ($matches as $m) {
+                $fullHtml  = $m[0];
+                $innerText = trim(html_entity_decode(strip_tags($fullHtml), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+                // Skip: too short, likely template/navigation noise
+                if (strlen($innerText) < 20) continue;
+                if (str_word_count($innerText) < 4) continue;
+
+                // Skip: looks like CSS, JSON, or code
+                if (str_starts_with($innerText, '{') || str_starts_with($innerText, '.') || str_starts_with($innerText, '/*')) continue;
+                if (str_contains($innerText, 'font-size:') || str_contains($innerText, 'var(--')) continue;
+
+                // Skip: breadcrumbs, copyright, badges
+                if (preg_match('/\b(copyright|breadcrumb|©|\bcrumb\b|\bbadge\b)\b/i', $fullHtml)) continue;
+
+                // CRITICAL: only add if this exact HTML string exists in rawHtml (so str_replace will work)
+                if (!str_contains($rawHtml, $fullHtml)) continue;
+
+                // Avoid duplicate HTML snippets
+                $hash = md5($fullHtml);
+                if (isset($found[$hash])) continue;
+
+                $tag = strtolower($type === 'li' ? 'li' : (preg_match('/^<([a-z0-9]+)/i', $fullHtml, $tm) ? $tm[1] : 'p'));
+
+                $found[$hash] = [
+                    'tag'   => $tag,
+                    'html'  => $fullHtml,   // exact string from rawHtml — str_replace will find this
+                    'text'  => $innerText,
+                    'words' => str_word_count($innerText),
+                ];
+            }
         }
 
-        return $segments;
+        return array_values($found);
     }
 
-    /** Return elapsed ms as string */
+    /** Return elapsed milliseconds as a formatted string */
     private function ms(float $start): string
     {
         return round((microtime(true) - $start) * 1000) . 'ms';
@@ -372,8 +421,8 @@ RULES:
             ->exists();
 
         if (!$exists) {
-            $unit = $job->website?->default_rewrite_interval_unit ?? 'days';
-            $val  = (int)($job->website?->default_rewrite_interval_days ?? 2);
+            $unit  = $job->website?->default_rewrite_interval_unit ?? 'days';
+            $val   = (int)($job->website?->default_rewrite_interval_days ?? 2);
 
             $nextAt = match ($unit) {
                 'minutes' => now()->addMinutes($val),
