@@ -391,21 +391,21 @@
     ══════════════════════════════════════════════════════════════════ --}}
     @if($showWorkflowModal)
     <style>
-        @keyframes flow-dot {
+        @@keyframes flow-dot {
             0%   { transform: translateY(-100%); opacity: 0; }
             20%  { opacity: 1; }
             80%  { opacity: 1; }
             100% { transform: translateY(100%); opacity: 0; }
         }
-        @keyframes node-pulse {
+        @@keyframes node-pulse {
             0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,.5); }
             50%       { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
         }
-        @keyframes success-glow {
+        @@keyframes success-glow {
             0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,.4); }
             50%       { box-shadow: 0 0 0 10px rgba(34,197,94,0); }
         }
-        @keyframes slide-in-up {
+        @@keyframes slide-in-up {
             from { opacity:0; transform:translateY(20px) scale(.97); }
             to   { opacity:1; transform:translateY(0)   scale(1);    }
         }
