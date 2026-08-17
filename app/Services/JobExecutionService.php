@@ -85,17 +85,36 @@ class JobExecutionService
             ?? \App\Models\AiProvider::where('user_id', $job->website?->user_id)->first()
             ?? \App\Models\AiProvider::whereNull('user_id')->first()
             ?? \App\Models\AiProvider::first();
-        $modelId  = $job->aiModel?->model_id ?? 'llama-3.3-70b-versatile';
-        $apiKey   = $provider?->api_key;
+
         $endpoint = rtrim($provider?->endpoint ?? 'https://api.groq.com/openai/v1', '/');
+        $apiKey   = $provider?->api_key;
+
+        // Resolve model: job's explicit model → provider's own default model → smart endpoint-based fallback
+        if ($job->aiModel?->model_id) {
+            $modelId = $job->aiModel->model_id;
+        } elseif (!empty($provider?->default_model)) {
+            $modelId = $provider->default_model;
+        } else {
+            // Auto-detect a safe default based on the provider's endpoint
+            $modelId = match (true) {
+                str_contains($endpoint, 'openai.com')    => 'gpt-4o-mini',
+                str_contains($endpoint, 'anthropic.com') => 'claude-3-haiku-20240307',
+                str_contains($endpoint, 'groq.com')      => 'llama-3.3-70b-versatile',
+                str_contains($endpoint, 'together.ai')   => 'meta-llama/Llama-3-70b-chat-hf',
+                str_contains($endpoint, 'mistral.ai')    => 'mistral-small-latest',
+                str_contains($endpoint, 'deepseek.com')  => 'deepseek-chat',
+                default                                   => 'gpt-4o-mini',  // safe OpenAI-compatible fallback
+            };
+        }
 
         if (empty($apiKey)) {
-            $err = "No AI Provider API key configured. Please add an API key in AI Providers.";
+            $err = "No AI Provider API key configured. Please add an API key in AI Providers settings.";
             $steps['ai_rewrite'] = ['status' => 'failed', 'label' => 'AI Rewrite HTML Segments',
                 'time' => $this->ms($start), 'error' => $err, 'details' => 'Missing API key'];
             $job->update(['status' => JobStatus::Failed, 'error_message' => $err]);
             return ['success' => false, 'failed_step' => 'ai_rewrite', 'error_message' => $err, 'steps' => $steps];
         }
+
 
         // Limit to 12 segments per call to stay within token limits
         $targetSegments = array_slice($segments, 0, 12, true);
