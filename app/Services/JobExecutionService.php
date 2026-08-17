@@ -152,10 +152,11 @@ PROMPT;
             str_contains($endpoint, 'groq.com')      => [
                 'llama-3.3-70b-versatile',
                 'llama-3.1-8b-instant',
-                'llama3-70b-8192',
+                'llama-3.1-70b-versatile',
                 'mixtral-8x7b-32768',
                 'gemma2-9b-it',
                 'llama-3.2-11b-vision-preview',
+                'llama-3.2-90b-vision-preview',
             ],
             str_contains($endpoint, 'together.ai')   => ['meta-llama/Llama-3-70b-chat-hf', 'mistralai/Mixtral-8x7B-v0.1'],
             str_contains($endpoint, 'mistral.ai')    => ['mistral-small-latest', 'open-mistral-7b'],
@@ -202,15 +203,15 @@ PROMPT;
                     }
 
                     $aiError = "AI returned empty or unparseable JSON with model [{$attemptModel}].";
-                } elseif ($response->status() === 404) {
-                    // Model not found — try next fallback
-                    $aiError = "Model [{$attemptModel}] not found on this provider (404). Trying fallback...";
-                    Log::warning("JobExecutionService: 404 for model {$attemptModel} on {$endpoint} — will try next fallback in list");
+                } elseif (in_array($response->status(), [404, 410]) ||
+                          ($response->status() === 400 && preg_match('/decommission|deprecated|no longer supported|not supported/i', $response->json('error.message') ?? $response->body()))) {
+                    // Model not found or decommissioned — try next fallback
+                    $aiError = "Model [{$attemptModel}] unavailable ({$response->status()}). Trying fallback...";
+                    Log::warning("JobExecutionService: model {$attemptModel} unavailable on {$endpoint} (HTTP {$response->status()}) — trying next fallback");
                     continue; // try next model
-
                 } else {
                     $aiError = "AI API Error {$response->status()}: " . ($response->json('error.message') ?? $response->body());
-                    break; // non-404 error — don't retry
+                    break; // auth/rate-limit/server error — don't retry models
                 }
             } catch (\Throwable $e) {
                 $aiError = "AI Connection Error: " . $e->getMessage();
