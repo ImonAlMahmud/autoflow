@@ -27,29 +27,28 @@ class Register extends Component
 
     public function register()
     {
-        $this->validate();
-
-        $limits = match ($this->plan) {
-            'pro' => ['websites' => 25, 'rewrites' => 99999],
-            'enterprise' => ['websites' => 9999, 'rewrites' => 999999],
-            default => ['websites' => 3, 'rewrites' => 100],
-        };
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
 
         $user = User::create([
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
-            'plan' => $this->plan,
-            'plan_status' => 'active',
-            'websites_limit' => $limits['websites'],
-            'monthly_rewrites_limit' => $limits['rewrites'],
+            'role' => 'user',
+            'plan' => 'none',
+            'plan_status' => 'none',
+            'websites_limit' => 0,
+            'monthly_rewrites_limit' => 0,
         ]);
 
         Auth::login($user);
 
         session()->flash('toast', [
-            'title' => 'Welcome to Autoflow!',
-            'message' => "Your account has been created on the {$this->plan} plan.",
+            'title' => 'Account Created! 🎉',
+            'message' => 'Welcome to Autoflow! Please select a subscription plan to unlock full automation features.',
             'type' => 'success',
         ]);
 
@@ -58,6 +57,6 @@ class Register extends Component
 
     public function render()
     {
-        return view('auth.register')->layout('layouts.marketing');
+        return view('auth.register')->layout('components.marketing-layout');
     }
 }

@@ -9,9 +9,9 @@
         <button
             wire:click="syncAllRemotes"
             type="button"
-            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition-colors self-start sm:self-auto flex items-center gap-2"
+            class="px-4 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs shadow-xs transition-colors self-start sm:self-auto flex items-center gap-2"
         >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            <i class="fa-solid fa-rotate text-xs"></i>
             Fetch All Remotes
         </button>
     </div>
@@ -27,18 +27,18 @@
             @foreach($commits as $c)
                 <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#F9FAFB]/80 transition-colors">
                     <div class="flex items-start gap-4">
-                        <div class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 text-[#15803D] flex items-center justify-center font-mono font-bold text-xs flex-shrink-0">
                             git
                         </div>
 
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <span class="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">{{ $c->hash }}</span>
+                                <span class="font-mono text-xs font-bold text-[#15803D] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">{{ $c->hash }}</span>
                                 <span class="text-xs font-semibold text-[#101828]">{{ $c->message }}</span>
                             </div>
 
                             <p class="text-xs text-[#667085]">
-                                Website: <span class="font-medium text-[#101828]">{{ $c->website }}</span> • Branch: <code class="font-mono text-indigo-600">{{ $c->branch }}</code> • Author: {{ $c->author }}
+                                Website: <span class="font-medium text-[#101828]">{{ $c->website }}</span> • Branch: <code class="font-mono text-[#15803D]">{{ $c->branch }}</code> • Author: {{ $c->author }}
                             </p>
                         </div>
                     </div>

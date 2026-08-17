@@ -28,10 +28,19 @@ class Index extends Component
 
     public ?string $testEmailRecipient = '';
 
+    // Global GitHub Cloud Integration
+    public ?string $globalGithubToken = '';
+    public ?string $globalGithubAuthorName = 'Autoflow AI';
+    public ?string $globalGithubAuthorEmail = 'bot@autoflow.ideomet.com';
+
     public function mount()
     {
         $this->appName = SystemSetting::get('app_name', 'Autoflow') ?? 'Autoflow';
         $this->appTimezone = SystemSetting::get('app_timezone', 'UTC') ?? 'UTC';
+
+        $this->globalGithubToken = SystemSetting::get('global_github_token', '') ?? '';
+        $this->globalGithubAuthorName = SystemSetting::get('global_github_author_name', 'Autoflow AI') ?? 'Autoflow AI';
+        $this->globalGithubAuthorEmail = SystemSetting::get('global_github_author_email', 'bot@autoflow.ideomet.com') ?? 'bot@autoflow.ideomet.com';
 
         $this->mailHost = SystemSetting::get('mail_host', config('mail.mailers.smtp.host')) ?? '';
         $this->mailPort = (string)(SystemSetting::get('mail_port', config('mail.mailers.smtp.port')) ?? '587');
@@ -51,6 +60,10 @@ class Index extends Component
     {
         SystemSetting::set('app_name', $this->appName ?? 'Autoflow', 'general');
         SystemSetting::set('app_timezone', $this->appTimezone ?? 'UTC', 'general');
+
+        SystemSetting::set('global_github_token', $this->globalGithubToken ?? '', 'github', 'string', true);
+        SystemSetting::set('global_github_author_name', $this->globalGithubAuthorName ?? 'Autoflow AI', 'github');
+        SystemSetting::set('global_github_author_email', $this->globalGithubAuthorEmail ?? 'bot@autoflow.ideomet.com', 'github');
 
         SystemSetting::set('mail_host', $this->mailHost ?? '', 'smtp');
         SystemSetting::set('mail_port', $this->mailPort ?? '587', 'smtp');

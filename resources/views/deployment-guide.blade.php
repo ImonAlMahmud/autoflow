@@ -39,7 +39,7 @@
         <!-- Clean Step Header with Copy Button on the Right -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#EAECF0]">
             <div class="flex items-center gap-3">
-                <span class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 font-extrabold text-sm flex items-center justify-center border border-indigo-100 flex-shrink-0">
+                <span class="w-8 h-8 rounded-xl bg-emerald-50 text-[#15803D] font-extrabold text-sm flex items-center justify-center border border-emerald-100 flex-shrink-0">
                     1
                 </span>
                 <div>
@@ -52,7 +52,7 @@
             <button
                 @click="copyCode(`sudo apt update && sudo apt upgrade -y\nsudo apt install -y apache2 mysql-server git curl unzip zip\nsudo apt install -y php8.2 php8.2-cli php8.2-common php8.2-mysql php8.2-zip php8.2-mbstring php8.2-xml php8.2-curl php8.2-gd php8.2-bcmath\nsudo a2enmod rewrite\nsudo systemctl restart apache2`, 1)"
                 type="button"
-                class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-xs shadow-xs transition-all flex items-center gap-1.5 self-start sm:self-auto flex-shrink-0"
+                class="px-3.5 py-2 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] active:bg-[#15803D] text-white font-semibold text-xs shadow-xs transition-all flex items-center gap-1.5 self-start sm:self-auto flex-shrink-0"
             >
                 <span x-text="copiedIndex === 1 ? '✓ Copied to Clipboard!' : '📋 Copy Step 1 Commands'"></span>
             </button>

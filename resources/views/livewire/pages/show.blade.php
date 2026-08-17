@@ -3,12 +3,12 @@
     <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-xs p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <a href="{{ route('pages.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                <a href="{{ route('pages.index') }}" class="text-xs font-semibold text-[#15803D] hover:text-[#15803D] flex items-center gap-1">
                     ← Back to All Pages
                 </a>
                 <div class="flex items-center gap-3 mt-1">
                     <h1 class="text-2xl font-bold font-mono text-[#101828] tracking-tight">{{ $page->path }}</h1>
-                    <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold">
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#15803D] border border-emerald-200 text-xs font-semibold">
                         {{ $page->friendly_name ?? 'Static Document' }}
                     </span>
                 </div>
@@ -20,9 +20,9 @@
                 <button
                     wire:click="triggerPageRewrite"
                     type="button"
-                    class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center gap-2"
+                    class="px-4 py-2 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs shadow-xs transition-colors flex items-center gap-2"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    <i class="fa-solid fa-bolt text-xs"></i>
                     Run AI Rewrite Now
                 </button>
             </div>
@@ -66,14 +66,14 @@
                         <button
                             wire:click="$set('diffMode', 'split')"
                             type="button"
-                            class="px-2.5 py-1 rounded-md font-semibold transition-all {{ $diffMode === 'split' ? 'bg-white text-indigo-600 shadow-xs' : 'text-[#667085]' }}"
+                            class="px-2.5 py-1 rounded-md font-semibold transition-all {{ $diffMode === 'split' ? 'bg-white text-[#15803D] shadow-xs' : 'text-[#667085]' }}"
                         >
                             Split View
                         </button>
                         <button
                             wire:click="$set('diffMode', 'unified')"
                             type="button"
-                            class="px-2.5 py-1 rounded-md font-semibold transition-all {{ $diffMode === 'unified' ? 'bg-white text-indigo-600 shadow-xs' : 'text-[#667085]' }}"
+                            class="px-2.5 py-1 rounded-md font-semibold transition-all {{ $diffMode === 'unified' ? 'bg-white text-[#15803D] shadow-xs' : 'text-[#667085]' }}"
                         >
                             Unified View
                         </button>
@@ -131,13 +131,13 @@
                 <textarea
                     wire:model="overridePrompt"
                     rows="6"
-                    class="w-full p-3 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all font-sans"
+                    class="w-full p-3 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all font-sans"
                 ></textarea>
 
                 <button
                     wire:click="savePromptOverride"
                     type="button"
-                    class="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-colors shadow-xs"
+                    class="w-full py-2 px-3 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs transition-colors shadow-xs"
                 >
                     Save Custom Page Prompt
                 </button>

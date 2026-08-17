@@ -32,7 +32,7 @@ class ExecutePendingJobsCommand extends Command
         foreach ($dueJobs as $job) {
             $this->info("Processing Job #{$job->id}...");
 
-            // 1. Get raw HTML file content
+            // 1. Get raw HTML file content (Local file or GitHub API Cloud Fetch)
             $filePath = null;
             if ($job->website && $job->website->local_production_path && $job->page) {
                 $filePath = rtrim($job->website->local_production_path, '/\\') . DIRECTORY_SEPARATOR . ltrim($job->page->path, '/\\');
@@ -41,6 +41,15 @@ class ExecutePendingJobsCommand extends Command
             $rawHtml = '';
             if ($filePath && file_exists($filePath)) {
                 $rawHtml = file_get_contents($filePath);
+            }
+
+            // Cloud Remote GitHub API Fallback
+            if (empty($rawHtml) && $job->website && !empty($job->website->git_repository_url) && $job->page) {
+                $githubApi = new \App\Services\GithubApiService();
+                $fileData = $githubApi->getFileContent($job->website, $job->page->path);
+                if ($fileData && !empty($fileData['content'])) {
+                    $rawHtml = $fileData['content'];
+                }
             }
 
             // 2. Extract clean body text (strip script, style, head, nav)
@@ -209,9 +218,32 @@ CRITICAL MANDATES:
                 ]
             );
 
-            // 6. Execute real automatic Git Commit & Push to GitHub
+            // 5. Check Approval Mode
+            $approvalMode = $job->website?->approval_mode;
+            $isManualApproval = is_object($approvalMode) 
+                ? ($approvalMode === \App\Enums\ApprovalMode::Manual || $approvalMode->value === 'manual') 
+                : ($approvalMode === 'manual');
+
+            if ($isManualApproval) {
+                $job->update([
+                    'status' => JobStatus::PendingApproval,
+                    'validation_status' => \App\Enums\ValidationStatus::Passed,
+                    'finished_at' => now(),
+                ]);
+
+                $this->info("Job #{$job->id} generated AI rewrite and is held in Pending Approval.");
+                continue;
+            }
+
+            // 6. Execute real automatic Git Commit & Push to GitHub (Local Git or GitHub API)
             $gitService = new \App\Services\GitService();
-            $gitRes = $gitService->commitAndPush($job->website, "Autoflow AI: Refreshed {$job->page?->path} with layout-constrained length");
+            $pagePath = $job->page?->path ?? '/index.html';
+            $gitRes = $gitService->commitAndPush(
+                $job->website, 
+                "Autoflow AI: Refreshed {$pagePath} with layout-constrained length",
+                $pagePath,
+                $htmlContent
+            );
 
             $job->update([
                 'status' => JobStatus::Completed,

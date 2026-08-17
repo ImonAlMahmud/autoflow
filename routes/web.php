@@ -19,6 +19,25 @@ Route::get('/pricing', function () {
     return view('marketing.pricing');
 })->name('pricing');
 
+// Web-based Cron Trigger for Shared Hosting (Runs schedule without SSH)
+Route::get('/cron/run', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('schedule:run');
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response()->json([
+            'status' => 'success',
+            'timestamp' => now()->toIso8601String(),
+            'message' => 'Schedule executed successfully.',
+            'output' => $output,
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+})->name('cron.run');
+
 Route::get('/contact', function () {
     return view('marketing.contact');
 })->name('contact');
@@ -71,6 +90,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', \App\Livewire\Settings\Index::class)->name('index');
     });
 
+    Route::get('/how-to-use', \App\Livewire\User\Tutorial::class)->name('how-to-use');
     Route::get('/subscription', \App\Livewire\Subscription\Index::class)->name('subscription');
     Route::get('/system-health', \App\Livewire\Health\Show::class)->name('system-health');
     Route::get('/system/deployment', function () {
@@ -78,6 +98,11 @@ Route::middleware(['auth'])->group(function () {
     })->name('system.deployment');
     Route::get('/settings', \App\Livewire\Settings\Index::class)->name('settings');
     Route::get('/profile', \App\Livewire\Profile\Show::class)->name('profile');
+
+    // Super Admin Routes (God of application)
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/users', \App\Livewire\Admin\UsersIndex::class)->name('users');
+    });
 });
 
 require __DIR__.'/auth.php';

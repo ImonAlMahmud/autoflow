@@ -1,89 +1,181 @@
-<x-marketing-layout title="Pricing Plans — Autoflow by Ideomet Technologies">
-    <section class="py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-            
-            <div class="text-center space-y-4 max-w-3xl mx-auto">
-                <span class="px-3.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60 text-xs font-semibold">
-                    Transparent SaaS Pricing
-                </span>
-                <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">
-                    Simple Plans for Agencies & Enterprises
-                </h1>
-                <p class="text-slate-400 text-base">
-                    Scale your website automation without hidden fees. Built and backed by Ideomet Technologies.
-                </p>
-            </div>
+<x-marketing-layout>
 
-            <!-- Pricing Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-                <!-- Starter Plan -->
-                <div class="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-6 hover:border-slate-700 transition-all">
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-white">Starter</h3>
-                        <p class="text-xs text-slate-400">Perfect for single website owners and small business sites.</p>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-4xl font-extrabold text-white">$29</span>
-                            <span class="text-xs text-slate-400">/ month</span>
-                        </div>
-                        <ul class="space-y-3 pt-4 border-t border-slate-800 text-xs text-slate-300">
-                            <li class="flex items-center gap-2">✓ 3 Active Websites</li>
-                            <li class="flex items-center gap-2">✓ Up to 100 AI Rewrites / mo</li>
-                            <li class="flex items-center gap-2">✓ Style & Gradient Preservation</li>
-                            <li class="flex items-center gap-2">✓ Basic Git Push Automation</li>
-                        </ul>
-                    </div>
-                    <a href="{{ route('contact') }}" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs text-center transition-all">
-                        Get Started
-                    </a>
-                </div>
-
-                <!-- Pro Plan (Featured) -->
-                <div class="p-8 rounded-3xl bg-gradient-to-b from-indigo-950/90 to-slate-900/90 border-2 border-indigo-500 flex flex-col justify-between space-y-6 relative shadow-2xl shadow-indigo-600/20">
-                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-indigo-600 text-white font-bold text-[10px] uppercase tracking-wider">
-                        Most Popular
-                    </div>
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-white">Pro Agency</h3>
-                        <p class="text-xs text-indigo-200">Built for agencies managing multiple client websites.</p>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-4xl font-extrabold text-white">$79</span>
-                            <span class="text-xs text-indigo-300">/ month</span>
-                        </div>
-                        <ul class="space-y-3 pt-4 border-t border-indigo-900/80 text-xs text-slate-200">
-                            <li class="flex items-center gap-2">✓ Up to 25 Active Websites</li>
-                            <li class="flex items-center gap-2">✓ Unlimited AI Rewrites</li>
-                            <li class="flex items-center gap-2">✓ Site-Wise Log Filtering (50+ sites)</li>
-                            <li class="flex items-center gap-2">✓ Instant Custom Schedule Timers</li>
-                            <li class="flex items-center gap-2">✓ Priority Groq Llama 3.3 API</li>
-                        </ul>
-                    </div>
-                    <a href="{{ route('contact') }}" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs text-center shadow-lg transition-all">
-                        Start Pro Trial →
-                    </a>
-                </div>
-
-                <!-- Enterprise Plan -->
-                <div class="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between space-y-6 hover:border-slate-700 transition-all">
-                    <div class="space-y-4">
-                        <h3 class="text-xl font-bold text-white">Enterprise</h3>
-                        <p class="text-xs text-slate-400">Custom deployment & SLA for high-volume networks.</p>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-4xl font-extrabold text-white">$199</span>
-                            <span class="text-xs text-slate-400">/ month</span>
-                        </div>
-                        <ul class="space-y-3 pt-4 border-t border-slate-800 text-xs text-slate-300">
-                            <li class="flex items-center gap-2">✓ Unlimited Managed Websites</li>
-                            <li class="flex items-center gap-2">✓ Dedicated Ideomet Account Manager</li>
-                            <li class="flex items-center gap-2">✓ Custom API & GitHub Webhooks</li>
-                            <li class="flex items-center gap-2">✓ 99.9% Uptime SLA Guarantee</li>
-                        </ul>
-                    </div>
-                    <a href="{{ route('contact') }}" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs text-center transition-all">
-                        Contact Sales
-                    </a>
-                </div>
-            </div>
-
+<!-- HERO -->
+<section class="relative overflow-hidden bg-gradient-to-b from-[#F0FDF4] via-white to-white pt-20 pb-16 sm:pt-28 sm:pb-20">
+    <div class="absolute top-0 right-0 w-96 h-80 bg-[#DCFCE7] rounded-full blur-3xl opacity-40 translate-x-1/3 -translate-y-1/3 pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-5">
+        <div data-reveal class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#DCFCE7] border border-[#BBF7D0] text-[#15803D] text-xs font-bold tracking-wide shadow-xs">
+            <i class="fa-solid fa-tag"></i>Simple, Transparent Pricing
         </div>
-    </section>
+        <h1 data-reveal class="text-4xl sm:text-6xl font-extrabold text-[#0F172A] tracking-tight leading-tight">
+            Plans for every team size
+        </h1>
+        <p data-reveal class="text-lg text-[#64748B] max-w-2xl mx-auto leading-relaxed">
+            Start free. Scale confidently. Every plan includes the core Autoflow engine — pick the limits that match your agency's growth.
+        </p>
+        <div data-reveal class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#F0FDF4] border border-[#DCFCE7] text-[#15803D] text-xs font-bold shadow-xs">
+            <i class="fa-solid fa-shield-halved text-[#22C55E]"></i>14-day free trial on all plans · No credit card required
+        </div>
+    </div>
+</section>
+
+<!-- PRICING CARDS -->
+<section class="py-12 sm:py-16 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+            <!-- STARTER -->
+            <div class="card-hover p-8 rounded-3xl bg-white border border-[#E2E8F0] shadow-sm space-y-7">
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-seedling text-[#15803D]"></i></div>
+                        <span class="text-xs font-bold text-[#64748B] uppercase tracking-widest">Starter</span>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span class="text-5xl font-extrabold text-[#0F172A]">$29</span>
+                        <span class="text-[#64748B] text-sm font-medium pb-1">/month</span>
+                    </div>
+                    <p class="text-[#64748B] text-sm mt-3 leading-relaxed">Perfect for freelancers and small agencies managing a handful of client websites.</p>
+                </div>
+                <a href="{{ route('register') }}?plan=starter" class="block w-full text-center px-6 py-3 rounded-2xl border-2 border-[#CBD5E1] hover:border-[#22C55E] text-[#0F172A] hover:text-[#15803D] font-bold text-sm transition-all shadow-xs">
+                    <i class="fa-solid fa-arrow-right mr-1.5"></i>Start Free Trial
+                </a>
+                <div class="space-y-3 pt-2 border-t border-gray-100">
+                    <p class="text-[11px] font-bold text-[#64748B] uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1"></i>What's included</p>
+                    @php $starterFeatures = [
+                        ['fa-globe', 'text-[#22C55E]', '3 Active Websites', true],
+                        ['fa-brain', 'text-[#22C55E]', '100 AI Content Rewrites/mo', true],
+                        ['fa-code-branch', 'text-[#22C55E]', 'Git Sync & Auto-push', true],
+                        ['fa-eye', 'text-[#22C55E]', 'Manual Approval Mode', true],
+                        ['fa-envelope', 'text-[#22C55E]', 'Email Notifications', true],
+                        ['fa-shield-halved', 'text-[#22C55E]', 'Brand Protection Governance', true],
+                        ['fa-infinity', 'text-gray-300', 'Unlimited AI Rewrites', false],
+                        ['fa-bolt', 'text-gray-300', 'Priority Groq Inference', false],
+                        ['fa-clock', 'text-gray-300', '1-Min Cron Frequency', false],
+                    ]; @endphp
+                    @foreach($starterFeatures as [$icon, $iconColor, $label, $included])
+                    <div class="flex items-center gap-3 text-sm {{ $included ? 'text-[#0F172A]' : 'text-gray-300 line-through' }}">
+                        <i class="fa-solid {{ $icon }} {{ $iconColor }} text-xs w-4 text-center"></i>{{ $label }}
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- PRO (Featured) -->
+            <div class="relative card-hover p-8 rounded-3xl bg-[#0F172A] text-white shadow-2xl shadow-slate-900/30 space-y-7 sm:scale-[1.02] border-2 border-[#22C55E]">
+                <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <div class="px-4 py-1.5 rounded-full bg-[#22C55E] text-white font-extrabold text-xs uppercase tracking-widest shadow-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-crown text-xs"></i>Most Popular
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center"><i class="fa-solid fa-building text-[#22C55E]"></i></div>
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Pro Agency</span>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span class="text-5xl font-extrabold text-white">$79</span>
+                        <span class="text-gray-400 text-sm font-medium pb-1">/month</span>
+                    </div>
+                    <p class="text-gray-300 text-sm mt-3 leading-relaxed">Built for digital agencies managing 10–25 client websites with high-volume AI content automation.</p>
+                </div>
+                <a href="{{ route('register') }}?plan=pro" class="block w-full text-center px-6 py-3.5 rounded-2xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-sm transition-all shadow-lg hover:scale-105">
+                    <i class="fa-solid fa-rocket mr-1.5"></i>Start Free Trial
+                </a>
+                <div class="space-y-3 pt-2 border-t border-slate-800">
+                    <p class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider"><i class="fa-solid fa-list-check mr-1"></i>What's included</p>
+                    @php $proFeatures = [
+                        ['fa-globe', '25 Active Websites', true],
+                        ['fa-infinity', 'Unlimited AI Rewrites', true],
+                        ['fa-code-branch', 'Git Sync & Auto-push', true],
+                        ['fa-eye', 'Manual Approval Mode', true],
+                        ['fa-envelope', 'Email Notifications', true],
+                        ['fa-shield-halved', 'Brand Protection Governance', true],
+                        ['fa-bolt', 'Priority Groq Llama 3.3 70B', true],
+                        ['fa-clock', '5-Min Cron Frequency', true],
+                        ['fa-user-tie', 'Dedicated Account Manager', false],
+                    ]; @endphp
+                    @foreach($proFeatures as [$icon, $label, $included])
+                    <div class="flex items-center gap-3 text-sm {{ $included ? 'text-white' : 'text-gray-500 line-through' }}">
+                        <i class="fa-solid {{ $icon }} {{ $included ? 'text-[#22C55E]' : 'text-gray-600' }} text-xs w-4 text-center"></i>{{ $label }}
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- ENTERPRISE -->
+            <div class="card-hover p-8 rounded-3xl bg-white border border-gray-100 shadow-sm space-y-7">
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center"><i class="fa-solid fa-city text-violet-600"></i></div>
+                        <span class="text-xs font-bold text-violet-600 uppercase tracking-widest">Enterprise</span>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span class="text-5xl font-extrabold text-gray-900">$199</span>
+                        <span class="text-gray-400 text-sm font-medium pb-1">/month</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-3 leading-relaxed">For large teams and enterprises needing unlimited scale, dedicated SLA, and custom AI configuration.</p>
+                </div>
+                <a href="{{ route('contact') }}" class="block w-full text-center px-6 py-3 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-sm transition-all shadow-lg shadow-violet-500/20">
+                    <i class="fa-solid fa-phone mr-1.5"></i>Contact Sales
+                </a>
+                <div class="space-y-3 pt-2 border-t border-gray-50">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider"><i class="fa-solid fa-circle-plus mr-1"></i>Everything in Pro, plus</p>
+                    @php $enterpriseFeatures = [
+                        ['fa-infinity', 'Unlimited Websites'],
+                        ['fa-clock', '1-Minute Cron Frequency'],
+                        ['fa-sliders', 'Custom AI System Prompts'],
+                        ['fa-user-tie', 'Dedicated Account Manager'],
+                        ['fa-server', 'Private Self-hosted Deployment'],
+                        ['fa-file-contract', 'Custom SLA & Uptime Guarantee'],
+                        ['fa-users', 'Multi-user Team Seats'],
+                        ['fa-headset', 'Priority 24/7 Support'],
+                    ]; @endphp
+                    @foreach($enterpriseFeatures as [$icon, $label])
+                    <div class="flex items-center gap-3 text-sm text-gray-700">
+                        <i class="fa-solid {{ $icon }} text-violet-500 text-xs w-4 text-center"></i>{{ $label }}
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-24 sm:py-32 bg-gray-50 border-t border-gray-100">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        <div data-reveal class="text-center space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-[#15803D] text-xs font-bold tracking-wide mb-2">
+                <i class="fa-solid fa-circle-question"></i>FAQ
+            </div>
+            <h2 class="text-3xl font-extrabold text-gray-900">Frequently Asked Questions</h2>
+            <p class="text-gray-400">Can't find your answer? <a href="{{ route('contact') }}" class="text-[#15803D] hover:text-[#22C55E] font-semibold underline">Contact our team <i class="fa-solid fa-arrow-right text-xs"></i></a></p>
+        </div>
+
+        <div class="space-y-3" x-data="{ open: null }">
+            @php $faqs = [
+                ['Does Autoflow break my website CSS or design?', 'Never. Autoflow performs surgical text-node replacement using PHP string matching. It never touches CSS classes, inline styles, gradient definitions, or any HTML attributes. Your visual design is completely untouched.'],
+                ['Can I use Autoflow on a shared cPanel hosting?', 'Yes. Autoflow is designed to run on standard LAMP/LEMP shared hosting. You can configure cron jobs directly from cPanel, and Git operations use HTTPS PAT authentication — no SSH required.'],
+                ['What AI model powers the content rewriting?', "Autoflow uses Groq's inference API with the Llama 3.3 70B Versatile model. Groq provides sub-2-second response times, making batch page rewrites extremely fast and cost-efficient."],
+                ['Can I review AI changes before they go live?', 'Absolutely. Each website has an "Approval Mode" setting. In Manual Review mode, all rewrites are queued for your approval before git commit and push. You see before/after diffs in the dashboard.'],
+                ['What happens if the AI rewrite fails?', 'Autoflow has built-in retry logic. If a Groq API call fails or produces invalid output, the original HTML is preserved unchanged and the job is logged as failed. No partial rewrites are ever committed.'],
+                ['Is my website source code stored on your servers?', "No. Autoflow connects to your own Git repository and works within the file system of the server it's installed on. For self-hosted (Enterprise) plans, everything runs in your own infrastructure."],
+            ]; @endphp
+
+            @foreach($faqs as $i => [$question, $answer])
+            <div class="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+                <button @click="open === {{ $i }} ? open = null : open = {{ $i }}" class="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-gray-50 transition-colors">
+                    <span class="text-sm font-bold text-gray-900"><i class="fa-solid fa-circle-question text-indigo-400 mr-2"></i>{{ $question }}</span>
+                    <i class="fa-solid fa-plus text-gray-400 flex-shrink-0 transition-transform" :class="open === {{ $i }} ? 'rotate-45 text-[#22C55E]' : ''"></i>
+                </button>
+                <div x-show="open === {{ $i }}" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="px-6 pb-5 text-sm text-gray-500 leading-relaxed border-t border-gray-50 pt-4">
+                    <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5"></i>{{ $answer }}
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
 </x-marketing-layout>

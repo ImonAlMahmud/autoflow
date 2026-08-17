@@ -1,17 +1,37 @@
-<div class="space-y-6 max-w-6xl mx-auto" x-data="{ showProviderModal: false, showModelModal: false }">
+<div class="space-y-6 max-w-6xl mx-auto">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-[#101828]">AI Providers & Model Registry</h1>
-            <p class="text-xs text-[#667085] mt-1">Configure cloud AI API keys (OpenAI, Anthropic, Gemini, OpenRouter) or local servers (Ollama, LM Studio, vLLM).</p>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold text-[#101828]">AI Providers & Model Registry</h1>
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $providers->count() >= 3 ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-50 text-[#15803D] border border-emerald-200' }}">
+                        Providers: {{ $providers->count() }}/3
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold {{ $models->count() >= 10 ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-emerald-50 text-[#15803D] border border-emerald-200' }}">
+                        Models: {{ $models->count() }}/10
+                    </span>
+                </div>
+            </div>
+            <p class="text-xs text-[#667085] mt-1">Configure cloud AI API keys (OpenAI, Anthropic, Gemini, OpenRouter) or local servers (Ollama, LM Studio). Max 3 Providers & 10 Models allowed.</p>
         </div>
         <div class="flex items-center gap-3">
-            <button wire:click="openNewProviderModal" @click="showProviderModal = true" type="button" class="px-4 py-2 bg-white border border-[#D0D5DD] hover:bg-[#F9FAFB] text-[#344054] font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2">
-                + Add AI Provider / Server
-            </button>
-            <button @click="showModelModal = true" type="button" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2">
-                + Register New Model
-            </button>
+            @if(auth()->user()?->hasActiveSubscription())
+                <button wire:click="openNewProviderModal" type="button" class="px-4 py-2 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#334155] font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 {{ $providers->count() >= 3 ? 'opacity-60' : '' }}">
+                    + Add AI Provider / Server
+                </button>
+                <button wire:click="openNewModelModal" type="button" class="px-5 py-2.5 bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-xs rounded-xl shadow-sm transition-all hover:scale-105 flex items-center gap-2 {{ $models->count() >= 10 ? 'opacity-60' : '' }}">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    Register New Model
+                </button>
+            @else
+                <button @click="$dispatch('open-paywall', { feature: 'AI Provider Setup' })" type="button" class="px-4 py-2 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#334155] font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-xs text-amber-500"></i> + Add AI Provider / Server
+                </button>
+                <button @click="$dispatch('open-paywall', { feature: 'AI Model Registry' })" type="button" class="px-5 py-2.5 bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-xs rounded-xl shadow-sm transition-all hover:scale-105 flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-xs"></i> Register New Model
+                </button>
+            @endif
         </div>
     </div>
 
@@ -23,11 +43,11 @@
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-[#101828] uppercase tracking-wider">{{ $prov->name }}</span>
                         <div class="flex items-center gap-1.5">
-                            <button wire:click="editProvider({{ $prov->id }})" @click="showProviderModal = true" type="button" class="p-1 text-[#667085] hover:text-indigo-600 rounded hover:bg-gray-100 transition-colors" title="Edit Provider">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <button wire:click="editProvider({{ $prov->id }})" type="button" class="p-1 text-[#667085] hover:text-[#15803D] rounded hover:bg-gray-100 transition-colors" title="Edit Provider">
+                                <i class="fa-solid fa-pen text-xs"></i>
                             </button>
                             <button wire:click="deleteProvider({{ $prov->id }})" type="button" class="p-1 text-[#667085] hover:text-rose-600 rounded hover:bg-gray-100 transition-colors" title="Remove Provider">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                <i class="fa-solid fa-trash text-xs"></i>
                             </button>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 {{ strtoupper(is_object($prov->driver) ? $prov->driver->value : $prov->driver) }}
@@ -42,10 +62,31 @@
                     @endif
                 </div>
 
+                <!-- Inline Connection Status Feedback -->
+                @if(isset($testResults[$prov->id]))
+                    <div class="p-2.5 rounded-xl text-xs flex items-center gap-2 {{ $testResults[$prov->id]['status'] === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200' }}">
+                        <i class="fa-solid {{ $testResults[$prov->id]['status'] === 'success' ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600' }}"></i>
+                        <span class="font-medium text-[11px]">{{ $testResults[$prov->id]['message'] }}</span>
+                    </div>
+                @endif
+
                 <div class="pt-3 border-t border-[#EAECF0] flex items-center justify-between">
                     <span class="text-xs text-[#667085]">{{ $prov->models->count() }} Models configured</span>
-                    <button wire:click.prevent="testConnection({{ $prov->id }})" type="button" class="px-3 py-1.5 bg-[#F9FAFB] hover:bg-white border border-[#D0D5DD] text-xs font-semibold text-[#344054] rounded-lg transition-colors">
-                        Test Endpoint
+                    <button
+                        wire:click="testConnection({{ $prov->id }})"
+                        wire:loading.attr="disabled"
+                        wire:target="testConnection({{ $prov->id }})"
+                        type="button"
+                        class="px-3 py-1.5 bg-[#F9FAFB] hover:bg-white border border-[#D0D5DD] text-xs font-semibold text-[#344054] rounded-lg transition-all shadow-xs inline-flex items-center gap-1.5 disabled:opacity-75 disabled:cursor-wait"
+                    >
+                        <span wire:loading.remove wire:target="testConnection({{ $prov->id }})" class="inline-flex items-center gap-1">
+                            <i class="fa-solid fa-bolt text-xs text-[#15803D]"></i>
+                            Test Endpoint
+                        </span>
+                        <span wire:loading wire:target="testConnection({{ $prov->id }})" class="inline-flex items-center gap-1">
+                            <i class="fa-solid fa-spinner fa-spin text-xs text-[#15803D]"></i>
+                            Testing...
+                        </span>
                     </button>
                 </div>
             </div>
@@ -88,8 +129,13 @@
                                     Active
                                 </span>
                             </td>
-                            <td class="px-5 py-3.5 text-right">
-                                <button wire:click="deleteModel({{ $m->id }})" type="button" class="text-rose-600 hover:text-rose-800 text-xs font-semibold">Remove</button>
+                            <td class="px-5 py-3.5 text-right space-x-2">
+                                <button wire:click="editModel({{ $m->id }})" type="button" class="text-[#15803D] hover:text-[#166534] text-xs font-bold transition-colors inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-pen text-[10px]"></i> Edit
+                                </button>
+                                <button wire:click="deleteModel({{ $m->id }})" wire:confirm="Are you sure you want to remove this model?" type="button" class="text-rose-600 hover:text-rose-800 text-xs font-bold transition-colors inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-trash text-[10px]"></i> Remove
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -103,85 +149,107 @@
     </div>
 
     <!-- Modal 1: Add AI Provider / Endpoint -->
-    <div x-show="showProviderModal" @close-modals.window="showProviderModal = false" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4" @click.self="showProviderModal = false">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl" @click.away="showProviderModal = false">
-            <h3 class="text-base font-bold text-[#101828]">Add AI Provider / Local Server</h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">Provider Type / Driver</label>
-                    <select wire:model.live="providerDriver" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white">
-                        <option value="ollama">Ollama (Local Server)</option>
-                        <option value="groq">Groq Cloud API (Ultra Fast)</option>
-                        <option value="openai_compatible">OpenAI / OpenAI Compatible API</option>
-                        <option value="anthropic">Anthropic Claude API</option>
-                        <option value="gemini">Google Gemini API</option>
-                        <option value="openrouter">OpenRouter API</option>
-                    </select>
+    @if($showProviderModal)
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+            <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="text-base font-bold text-[#0F172A]">
+                        {{ $editingProviderId ? 'Edit AI Provider' : 'Add AI Provider / Local Server' }}
+                    </h3>
+                    <button wire:click="$set('showProviderModal', false)" type="button" class="text-gray-400 hover:text-gray-600 p-1">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">Display Name</label>
-                    <input type="text" wire:model="providerName" placeholder="e.g. My Local Ollama or Production OpenAI" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">API Endpoint / Server URL</label>
-                    <input type="text" wire:model="providerEndpoint" placeholder="http://127.0.0.1:11434" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">API Key (Optional for Local Server)</label>
-                    <input type="password" wire:model="providerApiKey" placeholder="sk-..." class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
-                </div>
-            </div>
-
-            <div class="flex items-center justify-end gap-2 pt-2">
-                <button @click="showProviderModal = false" type="button" class="px-4 py-2 text-xs font-semibold text-[#667085] hover:bg-[#F9FAFB] rounded-xl">Cancel</button>
-                <button wire:click="saveProvider" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Save Provider</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 2: Register New Model -->
-    <div x-show="showModelModal" @close-modals.window="showModelModal = false" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4" @click.self="showModelModal = false">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl" @click.away="showModelModal = false">
-            <h3 class="text-base font-bold text-[#101828]">Register AI Model</h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">Select Provider</label>
-                    <select wire:model="selectedProviderId" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white">
-                        @foreach($providers as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->driver }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">Model Name</label>
-                    <input type="text" wire:model="modelName" placeholder="e.g. Qwen 2.5 7B or GPT-4o" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">Model Identifier / ID</label>
-                    <input type="text" wire:model="modelIdentifier" placeholder="e.g. qwen2.5:7b, llama3.1:8b, gpt-4o" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-3">
                     <div>
-                        <label class="block text-xs font-semibold text-[#344054] mb-1">Temperature</label>
-                        <input type="number" step="0.05" wire:model="temperature" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
+                        <label class="block text-xs font-semibold text-[#344054] mb-1">Provider Type / Driver</label>
+                        <select wire:model.live="providerDriver" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white">
+                            <option value="ollama">Ollama (Local Server)</option>
+                            <option value="groq">Groq Cloud API (Ultra Fast)</option>
+                            <option value="openai_compatible">OpenAI / OpenAI Compatible API</option>
+                            <option value="anthropic">Anthropic Claude API</option>
+                            <option value="gemini">Google Gemini API</option>
+                            <option value="openrouter">OpenRouter API</option>
+                        </select>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-semibold text-[#344054] mb-1">Context Length</label>
-                        <input type="number" wire:model="contextLength" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
+                        <label class="block text-xs font-semibold text-[#344054] mb-1">Display Name</label>
+                        <input type="text" wire:model="providerName" placeholder="e.g. My Local Ollama or Production OpenAI" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#344054] mb-1">API Endpoint / Server URL</label>
+                        <input type="text" wire:model="providerEndpoint" placeholder="http://127.0.0.1:11434" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#344054] mb-1">API Key (Optional for Local Server)</label>
+                        <input type="password" wire:model="providerApiKey" placeholder="sk-..." class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
                     </div>
                 </div>
-            </div>
 
-            <div class="flex items-center justify-end gap-2 pt-2">
-                <button @click="showModelModal = false" type="button" class="px-4 py-2 text-xs font-semibold text-[#667085] hover:bg-[#F9FAFB] rounded-xl">Cancel</button>
-                <button wire:click="saveModel" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl">Register Model</button>
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button wire:click="$set('showProviderModal', false)" type="button" class="px-4 py-2 text-xs font-semibold text-[#667085] hover:bg-[#F9FAFB] rounded-xl">Cancel</button>
+                    <button wire:click="saveProvider" type="button" class="px-5 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-xs shadow-sm transition-all">Save Provider</button>
+                </div>
             </div>
         </div>
-    </div>
+    @endif
+
+    <!-- Modal 2: Register / Edit Model -->
+    @if($showModelModal)
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+            <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="text-base font-bold text-[#0F172A]">
+                        {{ $editingModelId ? 'Edit AI Model Configuration' : 'Register New AI Model' }}
+                    </h3>
+                    <button wire:click="$set('showModelModal', false)" type="button" class="text-gray-400 hover:text-gray-600 p-1">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-[#344054] mb-1">Select Provider</label>
+                        <select wire:model="selectedProviderId" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white">
+                            @foreach($providers as $p)
+                                <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->driver }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#344054] mb-1">Model Display Name</label>
+                        <input type="text" wire:model="modelName" placeholder="e.g. Groq Llama 3.3 70B or GPT-4o" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD] text-[#0F172A]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-[#344054] mb-1">Model Identifier / Slug *</label>
+                        <input type="text" wire:model="modelIdentifier" placeholder="e.g. llama-3.3-70b-versatile or gpt-4o" class="w-full px-3 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] text-[#0F172A]">
+                        <p class="text-[10px] text-[#64748B] mt-0.5">Groq Recommended: <code class="bg-gray-100 px-1 rounded text-emerald-700">llama-3.3-70b-versatile</code></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-[#344054] mb-1">Temperature</label>
+                            <input type="number" step="0.05" wire:model="temperature" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-[#344054] mb-1">Context Length</label>
+                            <input type="number" wire:model="contextLength" class="w-full px-3 py-2 text-xs rounded-xl border border-[#D0D5DD]">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                    <button wire:click="$set('showModelModal', false)" type="button" class="px-4 py-2 text-xs font-semibold text-[#667085] hover:bg-[#F9FAFB] rounded-xl">Cancel</button>
+                    <button wire:click="saveModel" type="button" class="px-5 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-xs shadow-sm transition-all hover:scale-105">
+                        {{ $editingModelId ? 'Update Model' : 'Register Model' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

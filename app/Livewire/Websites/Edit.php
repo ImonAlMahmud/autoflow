@@ -77,17 +77,20 @@ class Edit extends Component
     {
         $this->testingConnection = true;
 
-        if ($this->source_type === 'local') {
-            if (!empty($this->local_production_path) && is_dir($this->local_production_path)) {
-                $this->connectionResult = 'Local folder verified and readable.';
-                $this->dispatch('toast', title: 'Local Path Verified', message: 'Local directory exists and ready.', type: 'success');
-            } else {
-                $this->connectionResult = 'Local folder path not found on computer.';
-                $this->dispatch('toast', title: 'Path Error', message: 'Specified local directory does not exist.', type: 'danger');
-            }
+        $githubApi = new \App\Services\GithubApiService();
+        $dummyWebsite = new Website([
+            'git_repository_url' => $this->git_repository_url,
+            'git_access_token' => $this->git_access_token,
+            'git_branch' => $this->git_branch,
+        ]);
+
+        $files = $githubApi->listHtmlFiles($dummyWebsite);
+        if (!empty($files)) {
+            $this->connectionResult = 'Successfully connected to GitHub. Found ' . count($files) . ' HTML pages ready for automated AI refresh.';
+            $this->dispatch('toast', title: 'GitHub Handshake Successful 🚀', message: "Verified repository & found " . count($files) . " HTML pages.", type: 'success');
         } else {
-            $this->connectionResult = 'Successfully connected to GitHub repository.';
-            $this->dispatch('toast', title: 'Git Handshake Successful', message: 'Remote repository verified.', type: 'success');
+            $this->connectionResult = 'Could not access repository. Please check your GitHub Repository URL, Target Branch, and Personal Access Token (PAT).';
+            $this->dispatch('toast', title: 'GitHub Auth Failed', message: 'Unable to access repository with provided token.', type: 'danger');
         }
 
         $this->testingConnection = false;
@@ -101,8 +104,8 @@ class Edit extends Component
             $target->update([
                 'name' => $this->name,
                 'domain' => $this->domain,
-                'local_production_path' => $this->source_type === 'local' ? $this->local_production_path : null,
-                'git_repository_url' => $this->source_type === 'git' ? $this->git_repository_url : ($this->git_repository_url ?: 'local://' . \Illuminate\Support\Str::slug($this->name)),
+                'local_production_path' => null,
+                'git_repository_url' => $this->git_repository_url,
                 'git_branch' => $this->git_branch,
                 'git_access_token' => $this->git_access_token ?: null,
                 'git_author_name' => $this->git_author_name ?: 'Imon Mahmud',

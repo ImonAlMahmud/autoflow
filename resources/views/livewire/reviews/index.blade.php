@@ -23,9 +23,9 @@
             <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-xs hover:shadow-card transition-all p-6 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAECF0] pb-3">
                     <div class="flex items-center gap-3">
-                        <input type="checkbox" wire:model.live="selectedReviews" value="{{ $rev->id }}" class="rounded border-[#D0D5DD] text-indigo-600 focus:ring-indigo-500">
+                        <input type="checkbox" wire:model.live="selectedReviews" value="{{ $rev->id }}" class="rounded border-[#D0D5DD] text-[#15803D] focus:ring-[#22C55E]">
                         <div>
-                            <a href="{{ route('reviews.show', $rev->id) }}" class="font-bold text-base text-[#101828] hover:text-indigo-600 font-mono">
+                            <a href="{{ route('reviews.show', $rev->id) }}" class="font-bold text-base text-[#101828] hover:text-[#15803D] font-mono">
                                 {{ $rev->page_path }}
                             </a>
                             <p class="text-xs text-[#667085] mt-0.5">Website: <span class="font-medium text-[#101828]">{{ $rev->website_name }}</span> ({{ $rev->domain }})</p>
@@ -59,7 +59,7 @@
                         </button>
                         <a
                             href="{{ route('reviews.show', $rev->id) }}"
-                            class="px-3.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition-colors"
+                            class="px-3.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#15803D] font-semibold transition-colors"
                         >
                             Inspect Diff Studio →
                         </a>

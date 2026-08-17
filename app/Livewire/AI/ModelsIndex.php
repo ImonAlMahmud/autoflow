@@ -17,26 +17,137 @@ class ModelsIndex extends Component
     public string $providerEndpoint = 'http://127.0.0.1:11434';
     public string $providerApiKey = '';
 
-    // Add Custom Model Form
+    // Add / Edit Custom Model Form
+    public ?int $editingModelId = null;
     public ?int $selectedProviderId = null;
     public string $modelName = '';
     public string $modelIdentifier = '';
-    public float $temperature = 0.70;
+    public float $temperature = 0.75;
     public int $contextLength = 8192;
 
     public bool $showProviderModal = false;
     public bool $showModelModal = false;
+    public array $testResults = [];
 
     public function mount()
     {
-        $firstProvider = AiProvider::first();
+        $user = auth()->user();
+        $firstProvider = null;
+        if ($user && $user->isSuperAdmin()) {
+            $firstProvider = AiProvider::first();
+        } elseif ($user) {
+            $firstProvider = AiProvider::where('user_id', $user->id)->first();
+        }
+        
         if ($firstProvider) {
             $this->selectedProviderId = $firstProvider->id;
         }
     }
 
+    public function openNewModelModal()
+    {
+        $user = auth()->user();
+        $query = AiModel::query();
+        if ($user && !$user->isSuperAdmin()) {
+            $query->whereHas('provider', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        if ($query->count() >= 10) {
+            $this->dispatch('toast', title: 'Limit Reached', message: 'Maximum limit of 10 AI models reached. Please remove an existing model to add a new one.', type: 'warning');
+            return;
+        }
+
+        $this->editingModelId = null;
+        $this->modelName = '';
+        $this->modelIdentifier = '';
+        $this->temperature = 0.75;
+        $this->contextLength = 8192;
+        $this->showModelModal = true;
+    }
+
+    public function editModel($id)
+    {
+        $model = AiModel::find($id);
+        if (!$model) return;
+
+        $this->editingModelId = $model->id;
+        $this->selectedProviderId = $model->ai_provider_id;
+        $this->modelName = $model->name;
+        $this->modelIdentifier = $model->model_id;
+        $this->temperature = (float)($model->temperature ?? 0.75);
+        $this->contextLength = (int)($model->context_length ?? 8192);
+        $this->showModelModal = true;
+    }
+
+    public function saveModel()
+    {
+        $this->validate([
+            'selectedProviderId' => 'required|exists:ai_providers,id',
+            'modelName' => 'required|string|max:100',
+            'modelIdentifier' => 'required|string|max:100',
+        ]);
+
+        if ($this->editingModelId) {
+            $model = AiModel::find($this->editingModelId);
+            if ($model) {
+                $model->update([
+                    'ai_provider_id' => $this->selectedProviderId,
+                    'name' => $this->modelName,
+                    'model_id' => $this->modelIdentifier,
+                    'temperature' => $this->temperature,
+                    'context_length' => $this->contextLength,
+                ]);
+                $this->dispatch('toast', title: 'AI Model Updated', message: "Updated {$model->name} successfully.", type: 'success');
+            }
+        } else {
+            $user = auth()->user();
+            $query = AiModel::query();
+            if ($user && !$user->isSuperAdmin()) {
+                $query->whereHas('provider', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+            }
+
+            if ($query->count() >= 10) {
+                $this->dispatch('toast', title: 'Limit Reached', message: 'Maximum limit of 10 AI models reached.', type: 'error');
+                return;
+            }
+
+            $model = AiModel::create([
+                'ai_provider_id' => $this->selectedProviderId,
+                'name' => $this->modelName,
+                'model_id' => $this->modelIdentifier,
+                'temperature' => $this->temperature,
+                'context_length' => $this->contextLength,
+                'max_output_tokens' => 4096,
+                'timeout_seconds' => 120,
+                'status' => AIModelStatus::Active,
+            ]);
+            $this->dispatch('toast', title: 'AI Model Registered', message: 'New AI Model added to active catalog.', type: 'success');
+        }
+
+        $this->dispatch('close-modals');
+        $this->showModelModal = false;
+        $this->editingModelId = null;
+        $this->modelName = '';
+        $this->modelIdentifier = '';
+    }
+
     public function openNewProviderModal()
     {
+        $user = auth()->user();
+        $query = AiProvider::query();
+        if ($user && !$user->isSuperAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        if ($query->count() >= 3) {
+            $this->dispatch('toast', title: 'Limit Reached', message: 'Maximum limit of 3 AI Providers reached. Please remove an existing provider to add a new one.', type: 'warning');
+            return;
+        }
+
         $this->editingProviderId = null;
         $this->providerName = '';
         $this->providerDriver = 'ollama';
@@ -95,7 +206,19 @@ class ModelsIndex extends Component
                 $this->dispatch('toast', title: 'AI Provider Updated', message: "Updated {$provider->name} successfully.", type: 'success');
             }
         } else {
+            $user = auth()->user();
+            $query = AiProvider::query();
+            if ($user && !$user->isSuperAdmin()) {
+                $query->where('user_id', $user->id);
+            }
+
+            if ($query->count() >= 3) {
+                $this->dispatch('toast', title: 'Limit Reached', message: 'Maximum limit of 3 AI Providers reached.', type: 'error');
+                return;
+            }
+
             $provider = AiProvider::create([
+                'user_id' => $user?->id ?? 1,
                 'name' => $this->providerName,
                 'driver' => $this->providerDriver,
                 'endpoint' => rtrim($this->providerEndpoint, '/'),
@@ -123,33 +246,6 @@ class ModelsIndex extends Component
         }
     }
 
-    public function saveModel()
-    {
-        $this->validate([
-            'selectedProviderId' => 'required|exists:ai_providers,id',
-            'modelName' => 'required|string|max:100',
-            'modelIdentifier' => 'required|string|max:100',
-        ]);
-
-        AiModel::create([
-            'ai_provider_id' => $this->selectedProviderId,
-            'name' => $this->modelName,
-            'model_id' => $this->modelIdentifier,
-            'temperature' => $this->temperature,
-            'context_length' => $this->contextLength,
-            'max_output_tokens' => 2048,
-            'timeout_seconds' => 120,
-            'status' => AIModelStatus::Active,
-        ]);
-
-        $this->dispatch('close-modals');
-        $this->showModelModal = false;
-        $this->modelName = '';
-        $this->modelIdentifier = '';
-
-        $this->dispatch('toast', title: 'AI Model Registered', message: 'New AI Model added to active catalog.', type: 'success');
-    }
-
     public function testConnection($providerId)
     {
         $provider = AiProvider::find($providerId);
@@ -161,23 +257,28 @@ class ModelsIndex extends Component
             $driverValue = is_object($provider->driver) ? $provider->driver->value : (string)$provider->driver;
 
             if ($driverValue === 'ollama') {
-                $res = Http::timeout(5)->get($endpoint . '/api/tags');
+                $res = Http::timeout(5)->withoutVerifying()->get($endpoint . '/api/tags');
                 if ($res->successful()) {
-                    $this->dispatch('toast', title: 'Ollama Test Passed', message: 'Local Ollama server is active & reachable!', type: 'success');
+                    $modelsCount = count($res->json()['models'] ?? []);
+                    $this->testResults[$providerId] = ['status' => 'success', 'message' => "Ollama Online ({$modelsCount} local models available)"];
+                    $this->dispatch('toast', title: 'Ollama Server Connected! ⚡', message: "Found {$modelsCount} models in your local Ollama instance.", type: 'success');
                 } else {
-                    $this->dispatch('toast', title: 'Ollama Connection Error', message: 'Ollama server responded with HTTP status ' . $res->status(), type: 'danger');
+                    $this->testResults[$providerId] = ['status' => 'error', 'message' => 'Ollama returned HTTP ' . $res->status()];
+                    $this->dispatch('toast', title: 'Ollama Connection Failed', message: 'Could not reach ' . $endpoint, type: 'danger');
                 }
-            } elseif (in_array($driverValue, ['groq', 'openai_compatible', 'openrouter'])) {
+            } elseif ($driverValue === 'groq' || $driverValue === 'openai_compatible' || $driverValue === 'openrouter') {
                 $res = Http::timeout(8)
                     ->withoutVerifying()
-                    ->withHeaders(['Authorization' => 'Bearer ' . $apiKey])
+                    ->withToken($apiKey)
                     ->get($endpoint . '/models');
 
                 if ($res->successful()) {
-                    $this->dispatch('toast', title: 'API Key Verified! ⚡', message: "Handshake successful with {$provider->name}. Connection OK!", type: 'success');
+                    $this->testResults[$providerId] = ['status' => 'success', 'message' => 'Handshake Successful (200 OK)'];
+                    $this->dispatch('toast', title: 'Cloud API Verified! ⚡', message: "Verified API Key & Endpoint for {$provider->name}.", type: 'success');
                 } else {
-                    $msg = $res->json()['error']['message'] ?? ('HTTP Status ' . $res->status() . ' - Invalid API Key or Unauthorized');
-                    $this->dispatch('toast', title: 'API Handshake Failed', message: $msg, type: 'danger');
+                    $msg = $res->json()['error']['message'] ?? ('HTTP Status ' . $res->status());
+                    $this->testResults[$providerId] = ['status' => 'error', 'message' => $msg];
+                    $this->dispatch('toast', title: 'API Handshake Error', message: $msg, type: 'danger');
                 }
             } elseif ($driverValue === 'anthropic') {
                 $res = Http::timeout(8)
@@ -189,9 +290,11 @@ class ModelsIndex extends Component
                     ->get($endpoint . '/models');
 
                 if ($res->successful()) {
+                    $this->testResults[$providerId] = ['status' => 'success', 'message' => 'Claude API Key Verified (200 OK)'];
                     $this->dispatch('toast', title: 'Claude API Verified! ⚡', message: "Verified Anthropic API Key for {$provider->name}.", type: 'success');
                 } else {
                     $msg = $res->json()['error']['message'] ?? ('HTTP Status ' . $res->status());
+                    $this->testResults[$providerId] = ['status' => 'error', 'message' => $msg];
                     $this->dispatch('toast', title: 'Claude API Error', message: $msg, type: 'danger');
                 }
             } elseif ($driverValue === 'gemini') {
@@ -200,15 +303,19 @@ class ModelsIndex extends Component
                     ->get($endpoint . '/models?key=' . $apiKey);
 
                 if ($res->successful()) {
+                    $this->testResults[$providerId] = ['status' => 'success', 'message' => 'Gemini API Key Verified (200 OK)'];
                     $this->dispatch('toast', title: 'Gemini API Verified! ⚡', message: "Verified Google Gemini API Key for {$provider->name}.", type: 'success');
                 } else {
                     $msg = $res->json()['error']['message'] ?? ('HTTP Status ' . $res->status());
+                    $this->testResults[$providerId] = ['status' => 'error', 'message' => $msg];
                     $this->dispatch('toast', title: 'Gemini API Error', message: $msg, type: 'danger');
                 }
             } else {
+                $this->testResults[$providerId] = ['status' => 'success', 'message' => 'Endpoint saved.'];
                 $this->dispatch('toast', title: 'Endpoint Checked', message: "Endpoint for {$provider->name} is saved.", type: 'success');
             }
         } catch (\Exception $e) {
+            $this->testResults[$providerId] = ['status' => 'error', 'message' => $e->getMessage()];
             $this->dispatch('toast', title: 'Connection Handshake Error', message: $e->getMessage(), type: 'danger');
         }
     }
@@ -221,8 +328,19 @@ class ModelsIndex extends Component
 
     public function render()
     {
-        $providers = AiProvider::with('models')->get();
-        $models = AiModel::with('provider')->latest()->get();
+        $user = auth()->user();
+        $providersQuery = AiProvider::with('models');
+        $modelsQuery = AiModel::with('provider')->latest();
+
+        if ($user && !$user->isSuperAdmin()) {
+            $providersQuery->where('user_id', $user->id);
+            $modelsQuery->whereHas('provider', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        $providers = $providersQuery->get();
+        $models = $modelsQuery->get();
 
         return view('livewire.ai.models-index', [
             'providers' => $providers,

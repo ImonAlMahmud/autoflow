@@ -3,7 +3,7 @@
     <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-xs p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <a href="{{ route('reviews.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                <a href="{{ route('reviews.index') }}" class="text-xs font-semibold text-[#15803D] hover:text-[#15803D] flex items-center gap-1">
                     ← Back to Review Queue
                 </a>
                 <h1 class="text-2xl font-bold text-[#101828] tracking-tight mt-1">Reviewing Diff Studio: {{ $rewrite->page_path }}</h1>

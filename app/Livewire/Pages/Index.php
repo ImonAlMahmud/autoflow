@@ -37,21 +37,31 @@ class Index extends Component
 
     public function render()
     {
-        $websites = Website::all();
-        $query = WebsitePage::with('website')->latest();
+        $user = auth()->user();
+        $isSuper = $user && $user->isSuperAdmin();
+
+        $websitesQuery = Website::query();
+        $pagesQuery = WebsitePage::with('website')->latest();
+
+        if (!$isSuper && $user) {
+            $websitesQuery->where('user_id', $user->id);
+            $pagesQuery->whereHas('website', fn($q) => $q->where('user_id', $user->id));
+        }
+
+        $websites = $websitesQuery->get();
 
         if (!empty($this->search)) {
-            $query->where(function($q) {
+            $pagesQuery->where(function($q) {
                 $q->where('path', 'like', "%{$this->search}%")
                   ->orWhere('friendly_name', 'like', "%{$this->search}%");
             });
         }
 
         if ($this->websiteFilter !== 'all') {
-            $query->where('website_id', $this->websiteFilter);
+            $pagesQuery->where('website_id', $this->websiteFilter);
         }
 
-        $pages = $query->get();
+        $pages = $pagesQuery->get();
 
         return view('livewire.pages.index', [
             'pages' => $pages,

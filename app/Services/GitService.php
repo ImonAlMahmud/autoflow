@@ -7,14 +7,29 @@ use Illuminate\Support\Facades\Log;
 
 class GitService
 {
-    public function commitAndPush(Website $website, string $commitMessage = 'Autoflow AI: Content refresh update'): array
+    public function commitAndPush(Website $website, string $commitMessage = 'Autoflow AI: Content refresh update', ?string $filePath = null, ?string $updatedFileContent = null): array
     {
+        $hasGlobalToken = !empty(\App\Models\SystemSetting::get('global_github_token', ''));
+        $hasWebsiteToken = !empty($website->git_access_token);
+
+        // 1. If GitHub Token (Global or Website) is available, push directly via GitHub REST API
+        if (!empty($website->git_repository_url) && ($hasWebsiteToken || $hasGlobalToken) && $filePath && $updatedFileContent !== null) {
+            $githubApi = new GithubApiService();
+            return $githubApi->updateFile($website, $filePath, $updatedFileContent, $commitMessage);
+        }
+
         $dir = $website->local_production_path;
 
         if (empty($dir) || !is_dir($dir)) {
+            // If repository URL is present, call GitHub API (it will return clean error if token missing)
+            if (!empty($website->git_repository_url) && $filePath && $updatedFileContent !== null) {
+                $githubApi = new GithubApiService();
+                return $githubApi->updateFile($website, $filePath, $updatedFileContent, $commitMessage);
+            }
+
             return [
                 'success' => false,
-                'message' => 'Local website path does not exist.',
+                'message' => 'Cannot push: Please provide a valid GitHub Personal Access Token (PAT) in Settings (or Website Settings).',
             ];
         }
 

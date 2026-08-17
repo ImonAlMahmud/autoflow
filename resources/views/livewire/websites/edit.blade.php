@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between border-b border-[#EAECF0] pb-4">
         <div>
             <div class="flex items-center gap-2">
-                <a href="{{ route('websites.show', $websiteId ?? 1) }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                <a href="{{ route('websites.show', $websiteId ?? 1) }}" class="text-xs font-semibold text-[#15803D] hover:text-[#15803D] flex items-center gap-1">
                     ← Back to Website Overview
                 </a>
             </div>
@@ -29,7 +29,7 @@
                         wire:model.blur="name"
                         value="{{ $name ?? '' }}"
                         type="text"
-                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
                     >
                 </div>
 
@@ -39,84 +39,56 @@
                         wire:model.blur="domain"
                         value="{{ $domain ?? '' }}"
                         type="text"
-                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
                     >
                 </div>
-            </div>
-
-            <!-- Source Choice Cards -->
-            <div>
-                <label class="block text-xs font-semibold text-[#344054] mb-2">Website Files Source Location *</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label class="p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 {{ ($source_type ?? 'local') === 'local' ? 'border-indigo-600 bg-indigo-50/50' : 'border-[#EAECF0] hover:bg-[#F9FAFB]' }}">
-                        <input type="radio" wire:model.live="source_type" value="local" {{ ($source_type ?? 'local') === 'local' ? 'checked' : '' }} class="mt-1 text-indigo-600 focus:ring-indigo-500">
-                        <div>
-                            <span class="text-xs font-bold text-[#101828] block">🖥️ Local Computer Folder (Direct)</span>
-                            <span class="text-[11px] text-[#667085] mt-0.5 block">Use an existing static website folder located on this PC.</span>
-                        </div>
-                    </label>
-
-                    <label class="p-4 rounded-xl border-2 cursor-pointer transition-all flex items-start gap-3 {{ ($source_type ?? 'local') === 'git' ? 'border-indigo-600 bg-indigo-50/50' : 'border-[#EAECF0] hover:bg-[#F9FAFB]' }}">
-                        <input type="radio" wire:model.live="source_type" value="git" {{ ($source_type ?? 'local') === 'git' ? 'checked' : '' }} class="mt-1 text-indigo-600 focus:ring-indigo-500">
-                        <div>
-                            <span class="text-xs font-bold text-[#101828] block">🌐 GitHub / Remote Git Repository</span>
-                            <span class="text-[11px] text-[#667085] mt-0.5 block">Automatically clone and pull latest files from GitHub.</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Source Input Fields -->
-            @if(($source_type ?? 'local') === 'local')
-                <div class="p-4 bg-[#F9FAFB] rounded-xl border border-[#EAECF0] space-y-2">
-                    <label class="block text-xs font-semibold text-[#344054]">Local Website Directory Path *</label>
-                    <input
-                        wire:model.blur="local_production_path"
-                        value="{{ $local_production_path ?? '' }}"
-                        type="text"
-                        placeholder="e.g. C:\xampp\htdocs\mysite"
-                        class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
-                    >
-                    <p class="text-[11px] text-[#667085]">Autoflow will scan and edit HTML files directly inside this local folder.</p>
-                </div>
-            @else
-                <div class="space-y-4 p-4 bg-[#F9FAFB] rounded-xl border border-[#EAECF0]">
+            </div>            <!-- GitHub Repository Connection Details -->
+            <div class="space-y-4 p-5 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
+                <div class="flex items-center gap-2 pb-2 border-b border-[#E2E8F0]">
+                    <i class="fa-brands fa-github text-lg text-[#0F172A]"></i>
                     <div>
-                        <label class="block text-xs font-semibold text-[#344054] mb-1">Git Repository URL (HTTPS or SSH) *</label>
+                        <h4 class="text-xs font-bold text-[#0F172A]">GitHub Cloud Repository Integration</h4>
+                        <p class="text-[11px] text-[#64748B]">Autoflow fetches files, performs AI rewrites, and commits via GitHub API (Triggers instant Vercel / Netlify live deployment)</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-[#334155] mb-1">GitHub Repository URL (or owner/repo) *</label>
+                    <input
+                        wire:model.blur="git_repository_url"
+                        value="{{ $git_repository_url ?? '' }}"
+                        type="text"
+                        placeholder="https://github.com/imon-mahmud/catharsisintl or imon-mahmud/catharsisintl"
+                        class="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] focus:ring-2 focus:ring-[#22C55E]"
+                    >
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">Target Branch *</label>
                         <input
-                            wire:model.blur="git_repository_url"
-                            value="{{ $git_repository_url ?? '' }}"
+                            wire:model.blur="git_branch"
+                            value="{{ $git_branch ?? 'main' }}"
                             type="text"
-                            placeholder="https://github.com/username/repository.git"
-                            class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white"
+                            placeholder="main"
+                            class="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] focus:ring-2 focus:ring-[#22C55E]"
                         >
                     </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-[#344054] mb-1">Target Branch</label>
-                            <input
-                                wire:model.blur="git_branch"
-                                value="{{ $git_branch ?? 'main' }}"
-                                type="text"
-                                class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white"
-                            >
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-[#344054] mb-1">Git Personal Access Token (PAT)</label>
-                            <input
-                                wire:model.blur="git_access_token"
-                                value="{{ $git_access_token ?? '' }}"
-                                type="password"
-                                placeholder="ghp_••••••••••••••••••••"
-                                class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-white"
-                            >
-                        </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-[#334155] mb-1">GitHub Personal Access Token (PAT) *</label>
+                        <input
+                            wire:model.blur="git_access_token"
+                            value="{{ $git_access_token ?? '' }}"
+                            type="password"
+                            placeholder="ghp_••••••••••••••••••••"
+                            class="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] focus:ring-2 focus:ring-[#22C55E]"
+                        >
+                        <span class="text-[10px] text-[#64748B] mt-0.5 block">Generate from GitHub Settings ➜ Developer Settings ➜ Personal Access Tokens (repo permission)</span>
                     </div>
                 </div>
-            @endif
-
-            <!-- ALWAYS VISIBLE: Git Commit Author Configuration for all source types -->
+            </div>
+            
+            <!-- Git Commit Author Identity -->
             <div class="p-4 bg-[#F9FAFB] rounded-xl border border-[#EAECF0] space-y-3">
                 <div class="border-b border-[#EAECF0] pb-2">
                     <h4 class="text-xs font-bold text-[#101828]">Git Commit Author Identity (GitHub Attribution)</h4>
@@ -148,23 +120,14 @@
                 </div>
             </div>
 
-            <!-- Test Handshake Button -->
+            <!-- Test Connection -->
             <div class="pt-2 flex items-center justify-between">
-                <button
-                    wire:click="testConnection"
-                    type="button"
-                    class="px-3.5 py-2 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-xs font-semibold text-[#344054] flex items-center gap-2 shadow-xs"
-                >
-                    <svg class="w-4 h-4 text-indigo-600 {{ ($testingConnection ?? false) ? 'animate-spin' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
+                <button wire:click="testConnection" type="button" class="px-3.5 py-2 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-xs font-semibold text-[#344054] flex items-center gap-2 shadow-xs">
+                    <i class="fa-solid fa-bolt text-xs"></i>
                     Test Source Path / Connection
                 </button>
-
                 @if($connectionResult ?? null)
-                    <span class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 font-medium">
-                        ✓ {{ $connectionResult }}
-                    </span>
+                    <span class="text-xs text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 font-medium">✓ {{ $connectionResult }}</span>
                 @endif
             </div>
         </div>
@@ -178,29 +141,16 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-[#344054] mb-1">Approval Mode</label>
-                    <select
-                        wire:model="approval_mode"
-                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
-                    >
+                    <select wire:model="approval_mode" class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]">
                         <option value="automatic" {{ ($approval_mode ?? 'automatic') === 'automatic' ? 'selected' : '' }}>Automatic (Auto-update content when validation passes)</option>
                         <option value="manual" {{ ($approval_mode ?? 'automatic') === 'manual' ? 'selected' : '' }}>Manual Review (Require human approval before applying)</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="block text-xs font-semibold text-[#344054] mb-1">Default Rewrite Interval *</label>
                     <div class="flex items-center gap-2">
-                        <input
-                            wire:model.blur="interval_value"
-                            value="{{ $interval_value ?? 30 }}"
-                            type="number"
-                            min="1"
-                            class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
-                        >
-                        <select
-                            wire:model="interval_unit"
-                            class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
-                        >
+                        <input wire:model.blur="interval_value" value="{{ $interval_value ?? 30 }}" type="number" min="1" class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]">
+                        <select wire:model="interval_unit" class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white text-[#101828]">
                             <option value="minutes" {{ ($interval_unit ?? 'days') === 'minutes' ? 'selected' : '' }}>Minute(s)</option>
                             <option value="hours" {{ ($interval_unit ?? 'days') === 'hours' ? 'selected' : '' }}>Hour(s)</option>
                             <option value="days" {{ ($interval_unit ?? 'days') === 'days' ? 'selected' : '' }}>Day(s)</option>
@@ -210,68 +160,33 @@
                 </div>
             </div>
 
-            <!-- Website-wise Notification Receiver Email -->
             <div>
                 <label class="block text-xs font-semibold text-[#344054] mb-1">Notification Receiver Email (Website-Specific Alert Address)</label>
-                <input
-                    wire:model.blur="notification_email"
-                    value="{{ $notification_email ?? '' }}"
-                    type="email"
-                    placeholder="e.g. client@catharsisintl.com or admin@ideomet.com"
-                    class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
-                >
+                <input wire:model.blur="notification_email" value="{{ $notification_email ?? '' }}" type="email" placeholder="e.g. client@catharsisintl.com or admin@ideomet.com" class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]">
                 <span class="text-[10px] text-[#667085] mt-0.5 block">Email address to receive automated execution logs, AI rewrite status, and Git push notifications for this website.</span>
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-[#344054] mb-1">Protected Brand Terms (Comma separated)</label>
-                <input
-                    wire:model.blur="protected_terms"
-                    value="{{ $protected_terms ?? '' }}"
-                    type="text"
-                    placeholder="e.g. Autoflow, Ideomet Technologies, ISO 9001:2015, RL-549, BAIRA"
-                    class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
-                >
+                <input wire:model.blur="protected_terms" value="{{ $protected_terms ?? '' }}" type="text" placeholder="e.g. Autoflow, Ideomet Technologies, ISO 9001:2015, RL-549, BAIRA" class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]">
                 <span class="text-[10px] text-[#667085] mt-0.5 block">Exact legal or brand terms that Groq AI must NEVER alter or rewrite.</span>
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-[#344054] mb-1">Global Excluded HTML Selectors</label>
-                <input
-                    wire:model.blur="global_exclusion_selectors"
-                    value="{{ $global_exclusion_selectors ?? '' }}"
-                    type="text"
-                    placeholder="e.g. header, footer, nav, .cookie-banner, #privacy-modal, .no-ai-rewrite"
-                    class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]"
-                >
+                <input wire:model.blur="global_exclusion_selectors" value="{{ $global_exclusion_selectors ?? '' }}" type="text" placeholder="e.g. header, footer, nav, .cookie-banner, #privacy-modal, .no-ai-rewrite" class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828]">
                 <span class="text-[10px] text-[#667085] mt-0.5 block">CSS selectors of HTML blocks to completely skip from AI content rewriting.</span>
             </div>
         </div>
 
         <!-- Action Footer -->
         <div class="flex items-center justify-between pt-4 border-t border-[#EAECF0]">
-            <button
-                wire:click="deleteWebsite"
-                wire:confirm="Are you sure you want to disconnect this website?"
-                type="button"
-                class="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-700 transition-colors"
-            >
+            <button wire:click="deleteWebsite" wire:confirm="Are you sure you want to disconnect this website?" type="button" class="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-700 transition-colors">
                 Disconnect Website
             </button>
-
             <div class="flex items-center gap-3">
-                <a
-                    href="{{ route('websites.show', $websiteId ?? 1) }}"
-                    class="px-4 py-2.5 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-xs font-semibold text-[#344054] transition-colors"
-                >
-                    Cancel
-                </a>
-                <button
-                    type="submit"
-                    class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-xs shadow-xs transition-colors"
-                >
-                    Save Changes
-                </button>
+                <a href="{{ route('websites.show', $websiteId ?? 1) }}" class="px-4 py-2.5 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-xs font-semibold text-[#344054] transition-colors">Cancel</a>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] active:bg-[#15803D] text-white font-semibold text-xs shadow-xs transition-colors">Save Changes</button>
             </div>
         </div>
     </form>

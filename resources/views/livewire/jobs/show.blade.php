@@ -1,20 +1,30 @@
 <div class="space-y-6">
     <!-- Header -->
-    <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-xs p-6 space-y-4">
+    <div class="bg-white rounded-2xl border border-[#E2E8F0] shadow-card p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-                <a href="{{ route('jobs.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                <a href="{{ route('jobs.index') }}" class="text-xs font-bold text-[#22C55E] hover:text-[#16A34A] flex items-center gap-1">
                     ← Back to Jobs Queue
                 </a>
                 <div class="flex items-center gap-3 mt-1">
-                    <h1 class="text-2xl font-bold text-[#101828] tracking-tight">Job Execution #{{ $job?->id ?? $jobId }}</h1>
-                    <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold">
-                        {{ $job?->status ? (is_object($job->status) ? $job->status->label() : strtoupper($job->status)) : 'Scheduled' }}
-                    </span>
-
+                    <h1 class="text-2xl font-bold text-[#0F172A] tracking-tight">Job Execution #{{ $job?->id ?? $jobId }}</h1>
                     @php
                         $statusVal = is_object($job?->status) ? $job->status->value : (string)($job?->status ?? 'scheduled');
                     @endphp
+                    @if($statusVal === 'completed')
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] border border-[#BBF7D0] text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check text-xs"></i> Completed & Pushed
+                        </span>
+                    @elseif($statusVal === 'failed')
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#FEE2E2] text-[#B91C1C] border border-[#FECACA] text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-circle-xmark text-xs"></i> Failed
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-clock text-xs"></i> {{ is_object($job?->status) ? $job->status->label() : strtoupper($job?->status ?? 'Scheduled') }}
+                        </span>
+                    @endif
+
                     @if(!in_array($statusVal, ['cancelled', 'completed', 'failed', 'skipped']))
                         @php
                             $unit = $job?->website?->default_rewrite_interval_unit ?? 'minutes';
@@ -38,48 +48,55 @@
                                 }
                             }"
                             x-init="updateTimer(); setInterval(() => updateTimer(), 1000)"
-                            class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1.5 shadow-xs"
+                            class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] inline-flex items-center gap-1.5 shadow-xs"
                         >
-                            <svg class="w-3.5 h-3.5 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <i class="fa-solid fa-clock text-xs"></i>
                             <span x-text="timerText"></span>
-                            <span class="text-[10px] text-blue-500 font-sans">({{ $dueTime->format('h:i A') }})</span>
+                            <span class="text-[10px] text-[#15803D]/70 font-sans">({{ $dueTime->format('h:i A') }})</span>
                         </span>
                     @endif
                 </div>
-                <p class="text-xs text-[#667085] mt-1">
-                    Target Page: <span class="font-mono font-medium text-[#101828]">{{ $job?->page?->path ?? 'Page Path' }}</span> 
-                    on <span class="font-semibold text-[#101828]">{{ $job?->website?->name ?? 'Website' }}</span>
+                <p class="text-xs text-[#64748B] mt-1">
+                    Target Page: <span class="font-mono font-bold text-[#0F172A]">{{ $job?->page?->path ?? 'Page Path' }}</span> 
+                    on <span class="font-bold text-[#0F172A]">{{ $job?->website?->name ?? 'Website' }}</span>
                 </p>
             </div>
 
             <div class="flex items-center gap-2 self-start sm:self-auto">
-                <button
-                    wire:click="discardJob"
-                    type="button"
-                    class="px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition-colors"
-                >
-                    Discard
-                </button>
-                <button
-                    wire:click="approveAndPush"
-                    type="button"
-                    class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors"
-                >
-                    Approve & Commit to Git →
-                </button>
+                @if($statusVal === 'completed')
+                    <span class="px-4 py-2 rounded-xl bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] text-xs font-bold flex items-center gap-1.5">
+                        <i class="fa-brands fa-github text-sm"></i>
+                        Pushed to GitHub main
+                    </span>
+                @else
+                    <button
+                        wire:click="discardJob"
+                        type="button"
+                        class="px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition-colors"
+                    >
+                        Discard
+                    </button>
+                    <button
+                        wire:click="approveAndPush"
+                        type="button"
+                        class="px-5 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-xs shadow-sm transition-all hover:scale-105"
+                    >
+                        Approve & Commit to Git →
+                    </button>
+                @endif
             </div>
         </div>
 
         <!-- Visual Step Progress Stepper Bar -->
-        <div class="pt-4 border-t border-[#EAECF0]">
-            <div class="text-xs font-semibold text-[#667085] uppercase tracking-wider mb-3">Pipeline Lifecycle</div>
+        <div class="pt-4 border-t border-[#E2E8F0]">
+            <div class="text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-3">Pipeline Lifecycle</div>
             <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
-                <div class="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">1. Scheduled ✓</div>
-                <div class="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">2. Extracted ✓</div>
-                <div class="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">3. AI Generated ✓</div>
-                <div class="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium">4. Validated ✓</div>
-                <div class="p-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 font-bold animate-pulse">5. Review (Active)</div>
-                <div class="p-2 rounded-xl bg-gray-50 text-gray-400 border border-gray-200 font-medium">6. Git Commit</div>
+                <div class="p-2 rounded-xl bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] font-semibold">1. Scheduled ✓</div>
+                <div class="p-2 rounded-xl bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] font-semibold">2. Extracted ✓</div>
+                <div class="p-2 rounded-xl bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] font-semibold">3. AI Generated ✓</div>
+                <div class="p-2 rounded-xl bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] font-semibold">4. Validated ✓</div>
+                <div class="p-2 rounded-xl {{ $statusVal === 'completed' ? 'bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7]' : 'bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] font-bold animate-pulse' }} font-semibold">5. Processed ✓</div>
+                <div class="p-2 rounded-xl {{ $statusVal === 'completed' ? 'bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] font-bold' : 'bg-gray-50 text-gray-400 border border-gray-200' }} font-medium">6. Git Commit {{ $statusVal === 'completed' ? '✓' : '' }}</div>
             </div>
         </div>
     </div>
@@ -103,7 +120,7 @@
             <div class="border-b border-[#EAECF0]">
                 <div class="px-4 py-3 bg-[#F9FAFB] flex items-center justify-between">
                     <h3 class="text-xs font-bold text-[#101828] uppercase tracking-wider flex items-center gap-2">
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <i class="fa-solid fa-file-lines text-xs"></i>
                         Rewritten Text Comparison
                     </h3>
                     <span class="text-[11px] text-[#667085] font-mono bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg border border-purple-200">
@@ -170,7 +187,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-[#667085]">Target Branch:</span>
-                        <span class="font-mono font-semibold text-indigo-600">{{ $job?->website?->git_branch ?? 'main' }}</span>
+                        <span class="font-mono font-semibold text-[#15803D]">{{ $job?->website?->git_branch ?? 'main' }}</span>
                     </div>
                 </div>
             </div>

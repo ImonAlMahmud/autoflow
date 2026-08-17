@@ -29,7 +29,12 @@ class Index extends Component
 
     public function render()
     {
+        $user = auth()->user();
         $query = Website::withCount('pages');
+
+        if ($user && !$user->isSuperAdmin()) {
+            $query->where('user_id', $user->id);
+        }
 
         if (!empty($this->search)) {
             $query->where(function ($q) {

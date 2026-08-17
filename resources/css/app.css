@@ -2,10 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Autoflow 2026 Core Brand Tokens */
+  --brand-primary: #22C55E;
+  --brand-primary-hover: #16A34A;
+  --brand-primary-dark: #15803D;
+
+  --brand-soft: #DCFCE7;
+  --brand-softest: #F0FDF4;
+  --brand-light-border: #BBF7D0;
+
+  --brand-lime: #84CC16;
+  --brand-lime-light: #A3E635;
+
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+
+  --background-page: #F8FAFC;
+  --background-card: #FFFFFF;
+
+  --border-default: #E2E8F0;
+  --border-subtle: #F1F5F9;
+
+  /* Semantics */
+  --success: #22C55E;
+  --success-soft: #DCFCE7;
+  --warning: #F59E0B;
+  --warning-soft: #FEF3C7;
+  --danger: #EF4444;
+  --danger-soft: #FEE2E2;
+  --info: #3B82F6;
+  --info-soft: #DBEAFE;
+  --ai-accent: #8B5CF6;
+  --ai-accent-soft: #EDE9FE;
+
+  /* Elevation */
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.05), 0 8px 24px rgba(15, 23, 42, 0.04);
+  --shadow-glow: 0 8px 24px rgba(34, 197, 94, 0.18);
+  --shadow-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+}
+
 @layer base {
   body {
-    background-color: #F7F9FC;
-    color: #101828;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--background-page);
+    color: var(--text-primary);
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: -0.01em;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+}
+
+/* Custom Workflow & Flow Elements */
+.flow-line {
+  background: linear-gradient(90deg, #22C55E 0%, #84CC16 100%);
+}
+
+.flow-glow {
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.18);
+}
+
+.flow-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.flow-card:hover {
+  border-color: var(--brand-primary);
+  box-shadow: 0 12px 28px rgba(34, 197, 94, 0.08);
+}
+
+/* Micro-animations */
+@keyframes flow-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+.animate-flow-pulse {
+  animation: flow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

@@ -10,9 +10,9 @@
             <button
                 wire:click="triggerBatchRewrite"
                 type="button"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition-colors self-start sm:self-auto"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs shadow-xs transition-colors self-start sm:self-auto"
             >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                <i class="fa-solid fa-bolt text-xs"></i>
                 Run AI Refresh on {{ count($selectedPages) }} Selected
             </button>
         @endif
@@ -22,14 +22,12 @@
     <div class="bg-white p-4 rounded-2xl border border-[#EAECF0] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <!-- Search Input -->
         <div class="relative flex-1 max-w-md">
-            <svg class="w-4 h-4 text-[#98A2B3] absolute left-3.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <i class="fa-solid fa-magnifying-glass text-[#98A2B3] absolute left-3.5 top-3 text-xs"></i>
             <input
                 wire:model.live.debounce.300ms="search"
                 type="text"
                 placeholder="Search by page path or friendly name..."
-                class="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] placeholder-[#98A2B3] focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                class="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] placeholder-[#98A2B3] focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
             >
         </div>
 
@@ -37,7 +35,7 @@
         <div class="flex items-center gap-2">
             <select
                 wire:model.live="websiteFilter"
-                class="px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                class="px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
             >
                 <option value="all">All Connected Sites</option>
                 @foreach($websites as $site)
@@ -54,7 +52,7 @@
                 <thead>
                     <tr class="bg-[#F9FAFB] border-b border-[#EAECF0] text-[#667085] font-semibold uppercase tracking-wider text-[11px]">
                         <th class="py-3 px-4 w-10">
-                            <input type="checkbox" wire:model.live="selectAll" class="rounded border-[#D0D5DD] text-indigo-600 focus:ring-indigo-500">
+                            <input type="checkbox" wire:model.live="selectAll" class="rounded border-[#D0D5DD] text-[#15803D] focus:ring-[#22C55E]">
                         </th>
                         <th class="py-3 px-4">Page Path & Name</th>
                         <th class="py-3 px-4">Website</th>
@@ -69,10 +67,10 @@
                     @foreach($pages as $page)
                         <tr class="hover:bg-[#F9FAFB]/80 transition-colors">
                             <td class="py-3.5 px-4">
-                                <input type="checkbox" wire:model.live="selectedPages" value="{{ $page->id }}" class="rounded border-[#D0D5DD] text-indigo-600 focus:ring-indigo-500">
+                                <input type="checkbox" wire:model.live="selectedPages" value="{{ $page->id }}" class="rounded border-[#D0D5DD] text-[#15803D] focus:ring-[#22C55E]">
                             </td>
                             <td class="py-3.5 px-4">
-                                <a href="{{ route('pages.show', $page->id) }}" class="font-mono font-semibold text-[#101828] hover:text-indigo-600 transition-colors block">
+                                <a href="{{ route('pages.show', $page->id) }}" class="font-mono font-semibold text-[#101828] hover:text-[#15803D] transition-colors block">
                                     {{ $page->path }}
                                 </a>
                                 <span class="text-[11px] text-[#667085]">{{ $page->friendly_name ?? 'Static Document' }}</span>
@@ -110,7 +108,7 @@
                                     <button
                                         wire:click="triggerRewrite({{ $page->id }})"
                                         type="button"
-                                        class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition-colors"
+                                        class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-[#15803D] font-semibold transition-colors"
                                     >
                                         Rewrite Now
                                     </button>
@@ -119,7 +117,7 @@
                                         class="p-1 rounded-lg hover:bg-[#F2F4F7] text-[#667085] hover:text-[#101828]"
                                         title="View Page Details"
                                     >
-                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                        <i class="fa-solid fa-chevron-right text-xs"></i>
                                     </a>
                                 </div>
                             </td>

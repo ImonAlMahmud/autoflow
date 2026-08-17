@@ -12,8 +12,6 @@ class Create extends Component
 {
     public string $name = '';
     public string $domain = '';
-    public string $source_type = 'local'; // 'local' or 'git'
-    public string $local_production_path = '';
     public string $git_repository_url = '';
     public string $git_branch = 'main';
     public string $git_auth_method = 'access_token';
@@ -32,15 +30,23 @@ class Create extends Component
     public bool $testingConnection = false;
     public ?string $connectionResult = null;
 
+    public function mount()
+    {
+        // Pre-fill author info from Global Settings if available
+        $this->git_author_name = \App\Models\SystemSetting::get('global_github_author_name', 'Autoflow AI') ?? 'Autoflow AI';
+        $this->git_author_email = \App\Models\SystemSetting::get('global_github_author_email', 'bot@autoflow.ideomet.com') ?? 'bot@autoflow.ideomet.com';
+    }
+
     protected function rules(): array
     {
+        $hasGlobalToken = !empty(\App\Models\SystemSetting::get('global_github_token', ''));
+
         return [
             'name' => 'required|string|max:255',
             'domain' => 'required|string|max:255',
-            'source_type' => 'required|in:local,git',
-            'local_production_path' => 'nullable|required_if:source_type,local|string|max:500',
-            'git_repository_url' => 'nullable|required_if:source_type,git|string|max:255',
+            'git_repository_url' => 'required|string|max:255',
             'git_branch' => 'required|string|max:100',
+            'git_access_token' => $hasGlobalToken ? 'nullable|string|max:255' : 'required|string|max:255',
             'approval_mode' => 'required|string',
             'notification_email' => 'nullable|email|max:255',
             'interval_value' => 'required|integer|min:1',
@@ -52,17 +58,20 @@ class Create extends Component
     {
         $this->testingConnection = true;
 
-        if ($this->source_type === 'local') {
-            if (!empty($this->local_production_path) && is_dir($this->local_production_path)) {
-                $this->connectionResult = 'Local folder verified and readable.';
-                $this->dispatch('toast', title: 'Local Path Verified', message: 'Local directory exists and ready.', type: 'success');
-            } else {
-                $this->connectionResult = 'Local folder path not found on computer.';
-                $this->dispatch('toast', title: 'Path Error', message: 'Specified local directory does not exist.', type: 'danger');
-            }
+        $githubApi = new \App\Services\GithubApiService();
+        $dummyWebsite = new Website([
+            'git_repository_url' => $this->git_repository_url,
+            'git_access_token' => $this->git_access_token,
+            'git_branch' => $this->git_branch,
+        ]);
+
+        $files = $githubApi->listHtmlFiles($dummyWebsite);
+        if (!empty($files)) {
+            $this->connectionResult = 'Successfully connected to GitHub. Found ' . count($files) . ' HTML pages ready for automated AI refresh.';
+            $this->dispatch('toast', title: 'GitHub Handshake Successful 🚀', message: "Verified repository & found " . count($files) . " HTML pages.", type: 'success');
         } else {
-            $this->connectionResult = 'Successfully connected to GitHub repository.';
-            $this->dispatch('toast', title: 'Git Handshake Successful', message: 'Remote repository verified.', type: 'success');
+            $this->connectionResult = 'Could not access repository. Please check your GitHub Repository URL, Target Branch, and Personal Access Token (PAT).';
+            $this->dispatch('toast', title: 'GitHub Auth Failed', message: 'Unable to access repository with provided token.', type: 'danger');
         }
 
         $this->testingConnection = false;
@@ -82,15 +91,15 @@ class Create extends Component
             return redirect()->route('subscription');
         }
 
-        Website::create([
+        $website = Website::create([
             'user_id' => auth()->id() ?? 1,
             'name' => $this->name,
             'domain' => $this->domain,
-            'local_production_path' => $this->source_type === 'local' ? $this->local_production_path : null,
-            'git_repository_url' => $this->source_type === 'git' ? $this->git_repository_url : ($this->git_repository_url ?: 'local://' . \Illuminate\Support\Str::slug($this->name)),
+            'local_production_path' => null,
+            'git_repository_url' => $this->git_repository_url,
             'git_branch' => $this->git_branch,
             'git_auth_method' => GitAuthMethod::HttpsToken,
-            'git_access_token' => $this->git_access_token ?: null,
+            'git_access_token' => $this->git_access_token,
             'git_author_name' => $this->git_author_name ?: 'Imon Mahmud',
             'git_author_email' => $this->git_author_email ?: 'imon.mahmud4@gmail.com',
             'approval_mode' => $this->approval_mode === 'automatic' ? ApprovalMode::Automatic : ApprovalMode::Manual,
@@ -103,7 +112,24 @@ class Create extends Component
             'last_synced_at' => now(),
         ]);
 
-        $this->dispatch('toast', title: 'Website Connected', message: "Website configured with {$this->interval_value} {$this->interval_unit} rewrite interval.", type: 'success');
+        // Auto-discover pages from GitHub
+        $githubApi = new \App\Services\GithubApiService();
+        $files = $githubApi->listHtmlFiles($website);
+        foreach ($files as $rel) {
+            $cleanName = trim(str_replace(['.html', '-', '_'], ['', ' ', ' '], $rel), '/ ');
+            $parts = explode('/', $cleanName);
+            $friendlyName = implode(' › ', array_map('ucwords', $parts));
+
+            \App\Models\WebsitePage::create([
+                'website_id' => $website->id,
+                'path' => $rel,
+                'friendly_name' => $friendlyName ?: 'Home Page',
+                'rewrite_enabled' => true,
+                'rewrite_interval_days' => $website->default_rewrite_interval_days ?? 5,
+            ]);
+        }
+
+        $this->dispatch('toast', title: 'Website Connected to GitHub 🚀', message: "Registered {$website->name} and discovered " . count($files) . " HTML pages.", type: 'success');
 
         return redirect()->route('websites.index');
     }

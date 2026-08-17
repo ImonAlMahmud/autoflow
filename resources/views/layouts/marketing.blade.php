@@ -6,10 +6,8 @@
     <title>{{ $title ?? 'Autoflow — AI Website Refresh & Git Automation Platform by Ideomet Technologies' }}</title>
     <meta name="description" content="Autoflow by Ideomet Technologies: The enterprise AI platform for automated website content refreshes, SEO optimization, and instant GitHub sync.">
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -36,11 +34,11 @@
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="h-full font-sans antialiased text-slate-900 bg-slate-950 selection:bg-indigo-500 selection:text-white flex flex-col min-h-screen" x-data="{ mobileMenuOpen: false }">
+<body class="h-full font-sans antialiased text-slate-900 bg-slate-950 selection:bg-emerald-500 selection:text-white flex flex-col min-h-screen" x-data="{ mobileMenuOpen: false }">
 
     <!-- Background Ambient Glow Effects -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-[#22C55E]/20 rounded-full blur-3xl"></div>
         <div class="absolute top-1/3 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl"></div>
     </div>
@@ -53,9 +51,7 @@
                 <!-- Logo & Brand Identifier -->
                 <a href="{{ route('home') }}" class="flex items-center gap-3 group">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-all">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
+                        <i class="fa-solid fa-bolt text-xs"></i>
                     </div>
                     <div class="flex flex-col">
                         <span class="font-extrabold text-xl text-white tracking-tight leading-none flex items-center gap-2">
@@ -95,10 +91,7 @@
 
                 <!-- Mobile Menu Button -->
                 <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-colors">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
         </div>
@@ -111,7 +104,7 @@
             <a href="{{ route('pricing') }}" class="block text-slate-300 hover:text-white py-1">Pricing</a>
             <a href="{{ route('contact') }}" class="block text-slate-300 hover:text-white py-1">Contact</a>
             <div class="pt-4 border-t border-slate-800">
-                <a href="{{ route('dashboard') }}" class="w-full justify-center px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center gap-2">
+                <a href="{{ route('dashboard') }}" class="w-full justify-center px-5 py-3 rounded-xl bg-[#22C55E] text-white font-bold text-xs flex items-center gap-2">
                     Launch App Dashboard →
                 </a>
             </div>
@@ -130,7 +123,7 @@
                 <!-- Col 1: Brand Info -->
                 <div class="space-y-4 md:col-span-1">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
+                        <div class="w-8 h-8 rounded-lg bg-[#22C55E] flex items-center justify-center text-white font-bold">
                             ⚡
                         </div>
                         <span class="font-extrabold text-lg text-white">Autoflow</span>

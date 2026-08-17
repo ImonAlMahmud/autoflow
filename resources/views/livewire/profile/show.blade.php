@@ -35,7 +35,7 @@
             <button
                 wire:click="updateProfile"
                 type="button"
-                class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition-colors"
+                class="px-4 py-2 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs shadow-xs transition-colors"
             >
                 Update Profile Info
             </button>
@@ -70,7 +70,7 @@
             <button
                 wire:click="updatePassword"
                 type="button"
-                class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition-colors"
+                class="px-4 py-2 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs shadow-xs transition-colors"
             >
                 Update Password
             </button>

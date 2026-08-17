@@ -27,9 +27,7 @@
     <!-- Filter Bar -->
     <div class="bg-white p-4 rounded-2xl border border-[#EAECF0] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="relative flex-1 max-w-md">
-            <svg class="w-4 h-4 text-[#98A2B3] absolute left-3.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <i class="fa-solid fa-magnifying-glass text-[#98A2B3] absolute left-3.5 top-3 text-xs"></i>
             <input
                 wire:model.live.debounce.300ms="search"
                 type="text"
@@ -39,7 +37,7 @@
         </div>
 
         <div class="flex items-center gap-1.5 p-1 bg-[#F2F4F7] rounded-xl border border-[#EAECF0] text-xs">
-            <button wire:click="$set('levelFilter', 'all')" class="px-3 py-1.5 font-medium rounded-lg {{ $levelFilter === 'all' ? 'bg-white text-indigo-600 font-semibold shadow-xs' : 'text-[#667085]' }}">All</button>
+            <button wire:click="$set('levelFilter', 'all')" class="px-3 py-1.5 font-medium rounded-lg {{ $levelFilter === 'all' ? 'bg-white text-[#15803D] font-semibold shadow-xs' : 'text-[#667085]' }}">All</button>
             <button wire:click="$set('levelFilter', 'info')" class="px-3 py-1.5 font-medium rounded-lg {{ $levelFilter === 'info' ? 'bg-white text-blue-600 font-semibold shadow-xs' : 'text-[#667085]' }}">Info</button>
             <button wire:click="$set('levelFilter', 'warning')" class="px-3 py-1.5 font-medium rounded-lg {{ $levelFilter === 'warning' ? 'bg-white text-amber-700 font-semibold shadow-xs' : 'text-[#667085]' }}">Warning</button>
         </div>

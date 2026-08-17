@@ -3,7 +3,7 @@
     <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-xs p-6 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-xs">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 text-[#15803D] flex items-center justify-center font-bold text-lg flex-shrink-0 shadow-xs">
                     {{ strtoupper(substr($website->domain ?? 'W', 0, 2)) }}
                 </div>
                 <div>
@@ -25,13 +25,13 @@
                     type="button"
                     class="px-3.5 py-2 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-xs font-semibold text-[#344054] transition-colors flex items-center gap-1.5 shadow-xs"
                 >
-                    <svg class="w-3.5 h-3.5 text-[#667085]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    <i class="fa-solid fa-rotate text-xs"></i>
                     Git Sync
                 </button>
                 <button
                     wire:click="runAudit"
                     type="button"
-                    class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors shadow-xs"
+                    class="px-3.5 py-2 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white text-xs font-semibold transition-colors shadow-xs"
                 >
                     Run Content Audit
                 </button>
@@ -40,7 +40,7 @@
                     class="p-2 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-[#667085] transition-colors shadow-xs"
                     title="Website Settings"
                 >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /></svg>
+                    <i class="fa-solid fa-gear text-xs"></i>
                 </a>
             </div>
         </div>
@@ -53,7 +53,7 @@
             </div>
             <div>
                 <span class="text-[11px] text-[#667085] uppercase font-semibold">Git Target Branch</span>
-                <p class="text-sm font-bold font-mono text-indigo-600 mt-1">{{ $website->git_branch ?? 'main' }}</p>
+                <p class="text-sm font-bold font-mono text-[#15803D] mt-1">{{ $website->git_branch ?? 'main' }}</p>
             </div>
             <div>
                 <span class="text-[11px] text-[#667085] uppercase font-semibold">Approval Mode</span>
@@ -65,7 +65,7 @@
             </div>
             <div>
                 <span class="text-[11px] text-[#667085] uppercase font-semibold">Notification Email</span>
-                <p class="text-xs font-bold text-indigo-600 mt-1 truncate" title="{{ $website->notification_email ?? 'Not Configured' }}">
+                <p class="text-xs font-bold text-[#15803D] mt-1 truncate" title="{{ $website->notification_email ?? 'Not Configured' }}">
                     {{ $website->notification_email ?: 'Default Admin' }}
                 </p>
             </div>
@@ -76,19 +76,19 @@
     <div class="border-b border-[#EAECF0] flex items-center gap-6 text-xs font-semibold">
         <button
             wire:click="$set('activeTab', 'pages')"
-            class="pb-3 border-b-2 transition-colors {{ $activeTab === 'pages' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-[#667085] hover:text-[#101828]' }}"
+            class="pb-3 border-b-2 transition-colors {{ $activeTab === 'pages' ? 'border-[#22C55E] text-[#15803D]' : 'border-transparent text-[#667085] hover:text-[#101828]' }}"
         >
             Tracked Pages ({{ count($pages) }})
         </button>
         <button
             wire:click="$set('activeTab', 'history')"
-            class="pb-3 border-b-2 transition-colors {{ $activeTab === 'history' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-[#667085] hover:text-[#101828]' }}"
+            class="pb-3 border-b-2 transition-colors {{ $activeTab === 'history' ? 'border-[#22C55E] text-[#15803D]' : 'border-transparent text-[#667085] hover:text-[#101828]' }}"
         >
             Git Commit History
         </button>
         <button
             wire:click="$set('activeTab', 'rules')"
-            class="pb-3 border-b-2 transition-colors {{ $activeTab === 'rules' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-[#667085] hover:text-[#101828]' }}"
+            class="pb-3 border-b-2 transition-colors {{ $activeTab === 'rules' ? 'border-[#22C55E] text-[#15803D]' : 'border-transparent text-[#667085] hover:text-[#101828]' }}"
         >
             Protected Terms & Selectors
         </button>
@@ -105,7 +105,7 @@
                         placeholder="Filter pages by path..."
                         class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] text-[#101828] placeholder-[#98A2B3]"
                     >
-                    <svg class="w-3.5 h-3.5 text-[#98A2B3] absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
                 </div>
 
                 <span class="text-xs text-[#667085]">Showing {{ count($pages) }} pages</span>
@@ -127,7 +127,7 @@
                         @forelse($pages as $page)
                             <tr class="hover:bg-[#F9FAFB]/80 transition-colors">
                                 <td class="py-3 px-4">
-                                    <a href="{{ route('pages.show', $page->id) }}" class="font-mono font-medium text-[#101828] hover:text-indigo-600 block">
+                                    <a href="{{ route('pages.show', $page->id) }}" class="font-mono font-medium text-[#101828] hover:text-[#15803D] block">
                                         {{ $page->path }}
                                     </a>
                                     <span class="text-[11px] text-[#667085]">{{ $page->friendly_name ?? 'Static Document' }}</span>
@@ -167,7 +167,7 @@
                                 <td colspan="6" class="py-12 px-4 text-center">
                                     <div class="max-w-md mx-auto space-y-3">
                                         <p class="text-xs text-[#667085]">No pages tracked yet for this website.</p>
-                                        <button wire:click="runAudit" type="button" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all">
+                                        <button wire:click="runAudit" type="button" class="px-4 py-2 bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs rounded-xl shadow-xs transition-all">
                                             🔍 Scan & Discover HTML Pages
                                         </button>
                                     </div>
@@ -185,7 +185,7 @@
             <div class="space-y-3">
                 <div class="p-3.5 rounded-xl bg-[#F9FAFB] border border-[#EAECF0] flex items-center justify-between text-xs">
                     <div class="flex items-center gap-3">
-                        <span class="font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 font-bold">a9f82c4</span>
+                        <span class="font-mono text-[#15803D] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 font-bold">a9f82c4</span>
                         <div>
                             <p class="font-semibold text-[#101828]">refactor(ai): refresh /products/cloud-platform copy</p>
                             <p class="text-[11px] text-[#667085]">Committed by Autoflow Bot • 2 hours ago</p>
@@ -203,7 +203,7 @@
                 <p class="font-semibold text-[#344054]">Brand Terms:</p>
                 <div class="flex flex-wrap gap-2">
                     @foreach((array)($website->protected_terms ?? ['TechCorp', 'API', 'v2', 'OAuth']) as $term)
-                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 font-mono font-medium">{{ $term }}</span>
+                        <span class="px-2.5 py-1 bg-emerald-50 text-[#15803D] rounded-lg border border-emerald-100 font-mono font-medium">{{ $term }}</span>
                     @endforeach
                 </div>
             </div>

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full scroll-smooth">
 <head>
     <meta charset="UTF-8">
+    <!-- Font Awesome 6 Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Autoflow — AI Website Refresh & Git Automation Platform by Ideomet Technologies' }}</title>
     <meta name="description" content="Autoflow by Ideomet Technologies: The enterprise AI platform for automated website content refreshes, SEO optimization, and instant GitHub sync.">
@@ -22,169 +24,224 @@
                     },
                     colors: {
                         brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            900: '#312e81',
+                            50: '#F0FDF4',
+                            100: '#DCFCE7',
+                            500: '#22C55E',
+                            600: '#16A34A',
+                            700: '#15803D',
+                            900: '#0F172A',
                         }
                     }
                 }
             }
         }
     </script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @livewireStyles
+    <style>
+        .gradient-text { background: linear-gradient(135deg, #15803D 0%, #22C55E 50%, #16A34A 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .card-hover { transition: transform .25s ease, box-shadow .25s ease; }
+        @media (hover: hover) { .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(34,197,94,.15); } }
+        .nav-active::after { content:''; position:absolute; bottom:-4px; left:0; right:0; height:2px; background:#22C55E; border-radius:2px; }
+        .nav-active { position:relative; }
+        @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        .animate-float { animation: floatY 5s ease-in-out infinite; }
+        @media (max-width: 640px) { .animate-float { animation: none; } }
+        @keyframes pulseDot { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.5)} 50%{box-shadow:0 0 0 6px rgba(34,197,94,0)} }
+        .pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+        [data-reveal] { opacity:0; transform:translateY(28px); transition:opacity .65s ease,transform .65s ease; }
+        [data-reveal].revealed { opacity:1; transform:translateY(0); }
+        [data-reveal-stagger] > * { opacity:0; transform:translateY(24px); transition:opacity .55s ease,transform .55s ease; }
+        [data-reveal-stagger].revealed > *:nth-child(1){opacity:1;transform:translateY(0);transition-delay:0ms}
+        [data-reveal-stagger].revealed > *:nth-child(2){opacity:1;transform:translateY(0);transition-delay:90ms}
+        [data-reveal-stagger].revealed > *:nth-child(3){opacity:1;transform:translateY(0);transition-delay:180ms}
+        [data-reveal-stagger].revealed > *:nth-child(4){opacity:1;transform:translateY(0);transition-delay:270ms}
+        [data-reveal-stagger].revealed > *:nth-child(5){opacity:1;transform:translateY(0);transition-delay:360ms}
+        [data-reveal-stagger].revealed > *:nth-child(6){opacity:1;transform:translateY(0);transition-delay:450ms}
+        @media (max-width: 640px) {
+            [data-reveal-stagger].revealed > * { opacity:1; transform:translateY(0); transition-delay:0ms !important; }
+        }
+        .mono-truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(el => {
+                    if (el.isIntersecting) { el.target.classList.add('revealed'); }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+            document.querySelectorAll('[data-reveal], [data-reveal-stagger]').forEach(el => observer.observe(el));
+        });
+    </script>
 </head>
-<body class="h-full font-sans antialiased text-slate-900 bg-slate-950 selection:bg-indigo-500 selection:text-white flex flex-col min-h-screen" x-data="{ mobileMenuOpen: false }">
+<body class="font-sans antialiased bg-white text-[#0F172A] flex flex-col min-h-screen" x-data="{ mobileMenuOpen: false }">
 
-    <!-- Background Ambient Glow Effects -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
-        <div class="absolute top-1/3 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl"></div>
-    </div>
-
-    <!-- Navigation Header -->
-    <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80">
+    <!-- ======================== MODERN SEAMLESS HEADER NAV ======================== -->
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E2E8F0]/80 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                
-                <!-- Logo & Brand Identifier -->
-                <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-all">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="font-extrabold text-xl text-white tracking-tight leading-none flex items-center gap-2">
-                            Autoflow
-                            <span class="text-[10px] font-semibold text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-700/50">PRO</span>
-                        </span>
-                        <span class="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5">By Ideomet Technologies</span>
-                    </div>
-                </a>
+            <div class="flex items-center justify-between h-18 sm:h-20">
 
-                <!-- Desktop Navigation Links -->
-                <nav class="hidden md:flex items-center gap-8 text-sm font-semibold">
-                    <a href="{{ route('home') }}" class="transition-colors {{ request()->routeIs('home') ? 'text-indigo-400 font-bold' : 'text-slate-300 hover:text-white' }}">
+                <!-- Logo & Brand Badge -->
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('home') }}" class="flex items-center gap-2.5 group">
+                        <img src="{{ asset('images/logo.png') }}" alt="Autoflow Logo" class="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+                    </a>
+                    <span class="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0FDF4] text-[#15803D] border border-[#DCFCE7] tracking-wider uppercase">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse"></span>
+                        AI 2.0
+                    </span>
+                </div>
+
+                <!-- Center Floating Navigation Links -->
+                <nav class="hidden md:flex items-center gap-1 bg-[#F8FAFC] border border-[#E2E8F0] p-1.5 rounded-2xl shadow-inner-xs">
+                    <a href="{{ route('home') }}" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 {{ request()->routeIs('home') ? 'bg-white text-[#15803D] shadow-xs border border-[#E2E8F0]' : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/60' }}">
+                        <i class="fa-solid fa-house text-[11px] {{ request()->routeIs('home') ? 'text-[#22C55E]' : 'opacity-60' }}"></i>
                         Home
                     </a>
-                    <a href="{{ route('about') }}" class="transition-colors {{ request()->routeIs('about') ? 'text-indigo-400 font-bold' : 'text-slate-300 hover:text-white' }}">
+                    <a href="{{ route('about') }}" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 {{ request()->routeIs('about') ? 'bg-white text-[#15803D] shadow-xs border border-[#E2E8F0]' : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/60' }}">
+                        <i class="fa-solid fa-building text-[11px] {{ request()->routeIs('about') ? 'text-[#22C55E]' : 'opacity-60' }}"></i>
                         About
                     </a>
-                    <a href="{{ route('how-it-works') }}" class="transition-colors {{ request()->routeIs('how-it-works') ? 'text-indigo-400 font-bold' : 'text-slate-300 hover:text-white' }}">
+                    <a href="{{ route('how-it-works') }}" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 {{ request()->routeIs('how-it-works') ? 'bg-white text-[#15803D] shadow-xs border border-[#E2E8F0]' : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/60' }}">
+                        <i class="fa-solid fa-gears text-[11px] {{ request()->routeIs('how-it-works') ? 'text-[#22C55E]' : 'opacity-60' }}"></i>
                         How It Works
                     </a>
-                    <a href="{{ route('pricing') }}" class="transition-colors {{ request()->routeIs('pricing') ? 'text-indigo-400 font-bold' : 'text-slate-300 hover:text-white' }}">
+                    <a href="{{ route('pricing') }}" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 {{ request()->routeIs('pricing') ? 'bg-white text-[#15803D] shadow-xs border border-[#E2E8F0]' : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/60' }}">
+                        <i class="fa-solid fa-tag text-[11px] {{ request()->routeIs('pricing') ? 'text-[#22C55E]' : 'opacity-60' }}"></i>
                         Pricing
                     </a>
-                    <a href="{{ route('contact') }}" class="transition-colors {{ request()->routeIs('contact') ? 'text-indigo-400 font-bold' : 'text-slate-300 hover:text-white' }}">
+                    <a href="{{ route('contact') }}" class="px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 {{ request()->routeIs('contact') ? 'bg-white text-[#15803D] shadow-xs border border-[#E2E8F0]' : 'text-[#64748B] hover:text-[#0F172A] hover:bg-white/60' }}">
+                        <i class="fa-solid fa-envelope text-[11px] {{ request()->routeIs('contact') ? 'text-[#22C55E]' : 'opacity-60' }}"></i>
                         Contact
                     </a>
                 </nav>
 
-                <!-- CTA Action Button -->
-                <div class="hidden md:flex items-center gap-4">
-                    <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 flex items-center gap-2">
-                        <span>Launch App Dashboard</span>
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                <!-- Right Action Buttons -->
+                <div class="hidden md:flex items-center gap-2.5">
+                    @auth
+                    <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-bold text-xs transition-all shadow-xs flex items-center gap-2 hover:scale-[1.02]">
+                        <i class="fa-solid fa-gauge-high text-[#22C55E]"></i>Dashboard
                     </a>
+                    @else
+                    <a href="{{ route('login') }}" class="px-4 py-2.5 text-[#0F172A] hover:text-[#15803D] font-bold text-xs transition-colors rounded-xl hover:bg-[#F8FAFC]">
+                        Sign In
+                    </a>
+                    <a href="{{ route('register') }}" class="px-5 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-xs shadow-md shadow-green-500/20 transition-all hover:scale-[1.03] flex items-center gap-2">
+                        <i class="fa-solid fa-rocket text-xs"></i>
+                        <span>Start Free Trial</span>
+                    </a>
+                    @endauth
                 </div>
 
-                <!-- Mobile Menu Button -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" type="button" class="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-colors">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                <!-- Mobile Toggle Hamburger -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] flex items-center justify-center transition-colors hover:bg-white">
+                    <i class="fa-solid text-base" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars-staggered'"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Mobile Menu Dropdown -->
-        <div x-show="mobileMenuOpen" x-transition class="md:hidden bg-slate-950 border-b border-slate-800 px-4 py-6 space-y-4 text-sm font-semibold">
-            <a href="{{ route('home') }}" class="block text-slate-300 hover:text-white py-1">Home</a>
-            <a href="{{ route('about') }}" class="block text-slate-300 hover:text-white py-1">About</a>
-            <a href="{{ route('how-it-works') }}" class="block text-slate-300 hover:text-white py-1">How It Works</a>
-            <a href="{{ route('pricing') }}" class="block text-slate-300 hover:text-white py-1">Pricing</a>
-            <a href="{{ route('contact') }}" class="block text-slate-300 hover:text-white py-1">Contact</a>
-            <div class="pt-4 border-t border-slate-800">
-                <a href="{{ route('dashboard') }}" class="w-full justify-center px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center gap-2">
-                    Launch App Dashboard →
-                </a>
+        <!-- Mobile Drawer Menu with Smooth Animation -->
+        <div
+            x-show="mobileMenuOpen"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-2"
+            class="md:hidden bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] px-4 py-4 shadow-xl space-y-2"
+        >
+                <div class="space-y-1">
+                    <a href="{{ route('home') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors {{ request()->routeIs('home') ? 'bg-[#F0FDF4] text-[#15803D]' : 'text-[#64748B] hover:bg-[#F8FAFC]' }}">
+                        <i class="fa-solid fa-house w-4 text-center text-[#22C55E]"></i>Home
+                    </a>
+                    <a href="{{ route('about') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors {{ request()->routeIs('about') ? 'bg-[#F0FDF4] text-[#15803D]' : 'text-[#64748B] hover:bg-[#F8FAFC]' }}">
+                        <i class="fa-solid fa-building w-4 text-center text-[#22C55E]"></i>About Ideomet
+                    </a>
+                    <a href="{{ route('how-it-works') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors {{ request()->routeIs('how-it-works') ? 'bg-[#F0FDF4] text-[#15803D]' : 'text-[#64748B] hover:bg-[#F8FAFC]' }}">
+                        <i class="fa-solid fa-gears w-4 text-center text-[#22C55E]"></i>How It Works
+                    </a>
+                    <a href="{{ route('pricing') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors {{ request()->routeIs('pricing') ? 'bg-[#F0FDF4] text-[#15803D]' : 'text-[#64748B] hover:bg-[#F8FAFC]' }}">
+                        <i class="fa-solid fa-tag w-4 text-center text-[#22C55E]"></i>Pricing Plans
+                    </a>
+                    <a href="{{ route('contact') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs transition-colors {{ request()->routeIs('contact') ? 'bg-[#F0FDF4] text-[#15803D]' : 'text-[#64748B] hover:bg-[#F8FAFC]' }}">
+                        <i class="fa-solid fa-envelope w-4 text-center text-[#22C55E]"></i>Contact Team
+                    </a>
+                </div>
+
+                <div class="pt-3 border-t border-[#E2E8F0] space-y-2">
+                    @auth
+                    <a href="{{ route('dashboard') }}" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0F172A] text-white font-bold text-xs shadow-xs">
+                        <i class="fa-solid fa-gauge-high text-[#22C55E]"></i>Go to Dashboard
+                    </a>
+                    @else
+                    <a href="{{ route('login') }}" class="w-full flex items-center justify-center py-2.5 rounded-xl border border-[#CBD5E1] text-[#0F172A] font-bold text-xs">
+                        Sign In
+                    </a>
+                    <a href="{{ route('register') }}" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold text-xs shadow-md shadow-green-500/20">
+                        <i class="fa-solid fa-rocket"></i>Get Started Free
+                    </a>
+                    @endauth
+                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 relative z-10">
+    <!-- MAIN -->
+    <main class="flex-1">
         {{ $slot }}
     </main>
 
-    <!-- Global Footer -->
-    <footer class="relative z-10 bg-slate-950 border-t border-slate-800/80 pt-16 pb-12 text-slate-400 text-xs">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <!-- Col 1: Brand Info -->
-                <div class="space-y-4 md:col-span-1">
+    <!-- FOOTER -->
+    <footer class="bg-[#0F172A] text-gray-400 pt-16 pb-10 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+                <div class="space-y-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
-                            ⚡
-                        </div>
-                        <span class="font-extrabold text-lg text-white">Autoflow</span>
+                        <img src="{{ asset('images/logo.png') }}" alt="Autoflow Logo" class="h-8 w-auto object-contain brightness-0 invert" />
                     </div>
-                    <p class="text-slate-400 leading-relaxed">
-                        Enterprise AI automation platform for continuous website content refresh, layout preservation, and automatic GitHub deployment.
-                    </p>
-                    <p class="text-indigo-400 font-semibold">
-                        A Product by Ideomet Technologies
-                    </p>
+                    <p class="text-sm text-gray-400 leading-relaxed">Enterprise AI automation for perpetual website content refresh and automatic GitHub deployment.</p>
+                    <p class="text-[#22C55E] text-sm font-semibold"><i class="fa-solid fa-building-columns mr-1.5"></i>A Product by Ideomet Technologies</p>
+                    <div class="flex items-center gap-2 text-xs text-[#22C55E]">
+                        <span class="w-2 h-2 rounded-full bg-[#22C55E] pulse-dot inline-block"></span>AI Engine Operational
+                    </div>
                 </div>
-
-                <!-- Col 2: Navigation -->
                 <div class="space-y-3">
-                    <p class="font-bold text-white uppercase tracking-wider text-[11px]">Product</p>
-                    <ul class="space-y-2">
-                        <li><a href="{{ route('home') }}" class="hover:text-white transition-colors">Platform Overview</a></li>
-                        <li><a href="{{ route('how-it-works') }}" class="hover:text-white transition-colors">How It Works</a></li>
-                        <li><a href="{{ route('pricing') }}" class="hover:text-white transition-colors">Pricing Plans</a></li>
-                        <li><a href="{{ route('dashboard') }}" class="hover:text-white transition-colors">App Dashboard</a></li>
+                    <p class="text-white font-bold text-xs uppercase tracking-widest">Product</p>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{{ route('home') }}" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>Platform Overview</a></li>
+                        <li><a href="{{ route('how-it-works') }}" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>How It Works</a></li>
+                        <li><a href="{{ route('pricing') }}" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>Pricing Plans</a></li>
+                        <li><a href="{{ route('dashboard') }}" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>App Dashboard</a></li>
                     </ul>
                 </div>
-
-                <!-- Col 3: Company -->
                 <div class="space-y-3">
-                    <p class="font-bold text-white uppercase tracking-wider text-[11px]">Ideomet Technologies</p>
-                    <ul class="space-y-2">
-                        <li><a href="{{ route('about') }}" class="hover:text-white transition-colors">About Ideomet</a></li>
-                        <li><a href="{{ route('contact') }}" class="hover:text-white transition-colors">Enterprise Contact</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    <p class="text-white font-bold text-xs uppercase tracking-widest">Company</p>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="{{ route('about') }}" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>About Ideomet</a></li>
+                        <li><a href="{{ route('contact') }}" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center gap-2"><i class="fa-solid fa-chevron-right text-[#22C55E] text-xs"></i>Terms of Service</a></li>
                     </ul>
                 </div>
-
-                <!-- Col 4: Tech Badge -->
                 <div class="space-y-3">
-                    <p class="font-bold text-white uppercase tracking-wider text-[11px]">Engineering</p>
-                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                        <div class="flex items-center gap-2 text-emerald-400 font-semibold">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            AI Engine Operational
-                        </div>
-                        <p class="text-slate-400 text-[11px]">Powered by Groq LLM & Native Git Remote Automation.</p>
+                    <p class="text-white font-bold text-xs uppercase tracking-widest">Technology</p>
+                    <div class="space-y-2.5 text-sm">
+                        <div class="flex items-center gap-2.5"><i class="fa-brands fa-github text-gray-400 w-4 text-center"></i><span>GitHub Integration</span></div>
+                        <div class="flex items-center gap-2.5"><i class="fa-solid fa-brain text-[#22C55E] w-4 text-center"></i><span>Groq Llama 3.3 70B</span></div>
+                        <div class="flex items-center gap-2.5"><i class="fa-brands fa-laravel text-red-400 w-4 text-center"></i><span>Laravel 11 + Livewire 3</span></div>
+                        <div class="flex items-center gap-2.5"><i class="fa-solid fa-shield-halved text-emerald-400 w-4 text-center"></i><span>CSS-Safe Rewriting</span></div>
+                        <div class="flex items-center gap-2.5"><i class="fa-solid fa-clock text-amber-400 w-4 text-center"></i><span>CPanel Cron Scheduler</span></div>
                     </div>
                 </div>
             </div>
-
-            <!-- Bottom Copyright Bar -->
-            <div class="pt-8 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-                <p>© {{ date('Y') }} Ideomet Technologies. All rights reserved.</p>
-                <p>Autoflow™ is a registered product of Ideomet Technologies Limited.</p>
+            <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+                <p><i class="fa-regular fa-copyright mr-1"></i>{{ date('Y') }} Ideomet Technologies. All rights reserved.</p>
+                <p>Autoflow is a registered product of Ideomet Technologies Limited.</p>
             </div>
         </div>
     </footer>
 
+    @livewireScripts
 </body>
 </html>

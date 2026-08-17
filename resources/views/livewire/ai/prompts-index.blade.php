@@ -9,7 +9,7 @@
         <button
             wire:click="saveVersion"
             type="button"
-            class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-xs transition-colors self-start sm:self-auto"
+            class="px-4 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16A34A] text-white font-semibold text-xs shadow-xs transition-colors self-start sm:self-auto"
         >
             Publish New Prompt Version
         </button>
@@ -24,7 +24,7 @@
             @foreach($templates as $tmpl)
                 <div
                     wire:click="selectTemplate({{ $tmpl->id }})"
-                    class="p-4 rounded-2xl border transition-all cursor-pointer {{ $selectedTemplateId === $tmpl->id ? 'bg-white border-indigo-600 shadow-md ring-2 ring-indigo-500/10' : 'bg-white border-[#EAECF0] hover:border-indigo-300 shadow-xs' }}"
+                    class="p-4 rounded-2xl border transition-all cursor-pointer {{ $selectedTemplateId === $tmpl->id ? 'bg-white border-[#22C55E] shadow-md ring-2 ring-indigo-500/10' : 'bg-white border-[#EAECF0] hover:border-indigo-300 shadow-xs' }}"
                 >
                     <div class="flex items-center justify-between">
                         <h4 class="text-xs font-bold text-[#101828]">{{ $tmpl->name }}</h4>
@@ -41,7 +41,7 @@
             <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-xs p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-[#EAECF0] pb-3">
                     <h3 class="text-sm font-bold text-[#101828]">System & User Prompt Configuration</h3>
-                    <span class="text-xs text-[#667085]">Available Variables: <code class="bg-gray-100 px-1 rounded text-indigo-600 font-mono">\{\{ content \}\}</code>, <code class="bg-gray-100 px-1 rounded text-indigo-600 font-mono">\{\{ protected_terms \}\}</code></span>
+                    <span class="text-xs text-[#667085]">Available Variables: <code class="bg-gray-100 px-1 rounded text-[#15803D] font-mono">\{\{ content \}\}</code>, <code class="bg-gray-100 px-1 rounded text-[#15803D] font-mono">\{\{ protected_terms \}\}</code></span>
                 </div>
 
                 <div>
@@ -49,7 +49,7 @@
                     <textarea
                         wire:model="systemPrompt"
                         rows="3"
-                        class="w-full p-3 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all font-mono"
+                        class="w-full p-3 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all font-mono"
                     ></textarea>
                 </div>
 
@@ -58,7 +58,7 @@
                     <textarea
                         wire:model="userPrompt"
                         rows="6"
-                        class="w-full p-3 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all font-mono"
+                        class="w-full p-3 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all font-mono"
                     ></textarea>
                 </div>
 
@@ -68,7 +68,7 @@
                         type="button"
                         class="px-4 py-2 rounded-xl border border-[#D0D5DD] bg-white hover:bg-[#F9FAFB] text-xs font-semibold text-[#344054] transition-colors shadow-xs flex items-center gap-2"
                     >
-                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <i class="fa-solid fa-circle-play text-xs"></i>
                         Test Prompt Playground
                     </button>
                 </div>
@@ -76,9 +76,9 @@
 
             <!-- Playground Test Preview Card -->
             @if($playgroundOutput)
-                <div class="bg-white rounded-2xl border border-indigo-200 shadow-xs p-6 space-y-3">
+                <div class="bg-white rounded-2xl border border-emerald-200 shadow-xs p-6 space-y-3">
                     <h4 class="text-xs font-bold text-indigo-900 uppercase tracking-wider">Playground Generated Preview Output</h4>
-                    <div class="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100 font-mono text-xs text-[#101828] whitespace-pre-wrap">
+                    <div class="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 font-mono text-xs text-[#101828] whitespace-pre-wrap">
                         {{ $playgroundOutput }}
                     </div>
                 </div>

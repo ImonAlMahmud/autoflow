@@ -30,27 +30,71 @@ class Show extends Component
     {
         if (!$this->website) return;
 
-        // Scan local folder or git repo if local path exists
-        if (!empty($this->website->local_production_path) && is_dir($this->website->local_production_path)) {
-            $files = glob(rtrim($this->website->local_production_path, '/\\') . '/*.html');
-            foreach ($files as $file) {
-                $relativePath = basename($file);
+        $scannedCount = 0;
+
+        // 1. If GitHub Repository is configured, scan remote repository files via GitHub API
+        if (!empty($this->website->git_repository_url)) {
+            $githubApi = new \App\Services\GithubApiService();
+            $htmlFiles = $githubApi->listHtmlFiles($this->website);
+
+            foreach ($htmlFiles as $rel) {
+                $cleanName = trim(str_replace(['.html', '-', '_'], ['', ' ', ' '], $rel), '/ ');
+                $parts = explode('/', $cleanName);
+                $friendlyName = implode(' › ', array_map('ucwords', $parts));
+
                 WebsitePage::firstOrCreate(
                     [
                         'website_id' => $this->website->id,
-                        'path' => '/' . $relativePath,
+                        'path' => $rel,
                     ],
                     [
-                        'friendly_name' => ucfirst(str_replace(['.html', '-', '_'], ['', ' ', ' '], $relativePath)),
+                        'friendly_name' => $friendlyName ?: 'Home Page',
                         'rewrite_enabled' => true,
-                        'rewrite_interval_days' => $this->website->default_rewrite_interval_days ?? 30,
+                        'rewrite_interval_days' => $this->website->default_rewrite_interval_days ?? 5,
                     ]
                 );
+                $scannedCount++;
             }
-            $this->dispatch('toast', title: 'Folder Scanned', message: 'Discovered and registered local HTML pages.', type: 'success');
-        } else {
-            $this->dispatch('toast', title: 'Content Audit Dispatched', message: 'Scanning website pages...', type: 'info');
         }
+
+        // 2. Local Directory Deep Scan fallback (if local folder is provided)
+        $dir = !empty($this->website->local_production_path) ? rtrim($this->website->local_production_path, '/\\') : null;
+        
+        if ($dir && is_dir($dir)) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::SELF_FIRST
+            );
+
+            foreach ($iterator as $file) {
+                if ($file->isFile() && strtolower($file->getExtension()) === 'html') {
+                    $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($dir)));
+                    if (!str_starts_with($rel, '/')) {
+                        $rel = '/' . $rel;
+                    }
+
+                    $cleanName = trim(str_replace(['.html', '-', '_'], ['', ' ', ' '], $rel), '/ ');
+                    $parts = explode('/', $cleanName);
+                    $friendlyName = implode(' › ', array_map('ucwords', $parts));
+
+                    WebsitePage::firstOrCreate(
+                        [
+                            'website_id' => $this->website->id,
+                            'path' => $rel,
+                        ],
+                        [
+                            'friendly_name' => $friendlyName ?: 'Home Page',
+                            'rewrite_enabled' => true,
+                            'rewrite_interval_days' => $this->website->default_rewrite_interval_days ?? 5,
+                        ]
+                    );
+                    $scannedCount++;
+                }
+            }
+        }
+
+        $this->website->loadCount('pages');
+        $this->dispatch('toast', title: 'Deep Audit Completed 🚀', message: "Discovered and registered {$scannedCount} HTML pages from GitHub repository.", type: 'success');
     }
 
     public function togglePageRewrite($pageId)

@@ -15,6 +15,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
         'avatar',
         'plan',
@@ -41,6 +42,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'superadmin' || $this->email === 'admin@autoflow.local';
+    }
+
     public function websites(): HasMany
     {
         return $this->hasMany(Website::class);
@@ -48,7 +54,19 @@ class User extends Authenticatable
 
     public function canAddWebsite(): bool
     {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
         return $this->websites()->count() < $this->websites_limit;
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return !empty($this->plan) && $this->plan !== 'none' && $this->plan_status === 'active';
     }
 
     public function isStarter(): bool
@@ -68,6 +86,10 @@ class User extends Authenticatable
 
     public function getPlanBadgeAttribute(): string
     {
+        if (!$this->hasActiveSubscription()) {
+            return 'NO SUBSCRIPTION (INACTIVE)';
+        }
+
         return match ($this->plan) {
             'pro' => 'PRO AGENCY ($79/mo)',
             'enterprise' => 'ENTERPRISE ($199/mo)',

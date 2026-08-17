@@ -110,24 +110,100 @@ class Index extends Component
         }
     }
 
+    // Animated Workflow Execution Modal State
+    public bool $showWorkflowModal = false;
+    public ?int $activeRunningJobId = null;
+    public array $workflowResult = [];
+
     public function runNow($jobId)
     {
+        $this->activeRunningJobId = $jobId;
+        $this->showWorkflowModal = true;
+        
         $job = RewriteJob::find($jobId);
-        if ($job) {
-            // Force scheduled_at to now so it runs immediately
+        if (!$job) {
+            $this->workflowResult = [
+                'success' => false,
+                'failed_label' => 'Job Lookup',
+                'error_message' => 'Job #' . $jobId . ' not found in database.',
+                'steps' => [],
+            ];
+            return;
+        }
+
+        try {
+            $executor = new \App\Services\JobExecutionService();
+            $result = $executor->executeJobWithSteps($job);
+            $this->workflowResult = $result;
+
+            if ($result['success'] ?? false) {
+                $this->dispatch('toast', title: 'Job Executed Successfully! 🚀', message: "Job #{$jobId} processed through AI & pushed to GitHub!", type: 'success');
+            } else {
+                $this->dispatch('toast', title: 'Workflow Step Failed ⚠️', message: "Failed at {$result['failed_label']}: {$result['error_message']}", type: 'danger');
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("RunNow Workflow Execution Error: " . $e->getMessage());
+            $this->workflowResult = [
+                'success' => false,
+                'failed_label' => 'System Execution',
+                'error_message' => $e->getMessage(),
+                'steps' => [],
+            ];
+            $this->dispatch('toast', title: 'System Exception', message: $e->getMessage(), type: 'danger');
+        }
+    }
+
+    public function approveAndPush($jobId)
+    {
+        $job = RewriteJob::with(['website', 'page', 'result'])->find($jobId);
+        if (!$job) {
+            $this->dispatch('toast', title: 'Job Not Found', message: 'Selected job was not found.', type: 'danger');
+            return;
+        }
+
+        try {
+            $gitService = new \App\Services\GitService();
+            $pagePath = $job->page?->path ?? '/index.html';
+            
+            // Get the AI-rewritten & style-preserved HTML from result
+            $rewrittenHtml = $job->result?->rewritten_segments['html'] ?? null;
+
+            if (empty($rewrittenHtml)) {
+                // Fallback: If not stored, fetch from GitHub
+                $githubApi = new \App\Services\GithubApiService();
+                $fileData = $githubApi->getFileContent($job->website, $pagePath);
+                $rewrittenHtml = $fileData['content'] ?? '';
+            }
+            
+            $gitRes = $gitService->commitAndPush(
+                $job->website,
+                "Autoflow AI (Manual Approved): Refreshed {$pagePath}",
+                $pagePath,
+                $rewrittenHtml
+            );
+
+            if (is_array($gitRes) && isset($gitRes['success']) && !$gitRes['success']) {
+                $this->dispatch('toast', title: 'GitHub Push Failed ⚠️', message: $gitRes['message'] ?? 'Could not push to GitHub.', type: 'danger');
+                return;
+            }
+
             $job->update([
-                'scheduled_at' => now()->subMinute(),
-                'status' => JobStatus::Scheduled,
+                'status' => JobStatus::Completed,
+                'validation_status' => \App\Enums\ValidationStatus::Passed,
+                'finished_at' => now(),
             ]);
 
-            try {
-                \Illuminate\Support\Facades\Artisan::call('content:scan-due');
-                $this->dispatch('toast', title: 'Job Executed Instantly', message: "Job #{$jobId} executed & pushed to GitHub! Next cycle rescheduled automatically.", type: 'success');
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error("RunNow Execution Error: " . $e->getMessage());
-                $this->dispatch('toast', title: 'Execution Warning', message: "Job #{$jobId} queued: " . $e->getMessage(), type: 'warning');
-            }
+            $this->dispatch('toast', title: 'Approved & Pushed! 🚀', message: "Job #{$job->id} changes pushed to GitHub main branch and deployed to Vercel!", type: 'success');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', title: 'Push Exception', message: $e->getMessage(), type: 'danger');
         }
+    }
+
+    public function closeWorkflowModal()
+    {
+        $this->showWorkflowModal = false;
+        $this->workflowResult = [];
+        $this->activeRunningJobId = null;
     }
 
     public function approveJob($jobId)
@@ -137,6 +213,37 @@ class Index extends Component
             $job->update(['status' => JobStatus::Completed, 'finished_at' => now()]);
             $this->dispatch('toast', title: 'Job Approved', message: "Job #{$jobId} approved and committed successfully.", type: 'success');
         }
+    }
+
+    public function clearCompletedJobs()
+    {
+        $query = RewriteJob::whereIn('status', [JobStatus::Completed, JobStatus::Cancelled, JobStatus::Failed, 'completed', 'cancelled', 'failed']);
+        if ($this->websiteFilter) {
+            $query->where('website_id', $this->websiteFilter);
+        }
+        $count = $query->count();
+        $query->delete();
+
+        $this->dispatch('toast', title: 'Job History Cleared', message: "Deleted {$count} past completed/failed job log records.", type: 'info');
+    }
+
+    public function clearAllLogs()
+    {
+        $user = auth()->user();
+        $isSuper = $user && $user->isSuperAdmin();
+
+        $query = RewriteJob::whereIn('status', [JobStatus::Completed, JobStatus::Failed, JobStatus::Cancelled]);
+        if (!$isSuper && $user) {
+            $query->whereHas('website', fn($q) => $q->where('user_id', $user->id));
+        }
+        $count = $query->delete();
+        $this->dispatch('toast', title: 'Logs Cleared', message: "Removed {$count} finished and failed job records.", type: 'info');
+    }
+
+    public function clearSingleLog($id)
+    {
+        RewriteJob::destroy($id);
+        $this->dispatch('toast', title: 'Log Deleted', message: "Removed job #{$id} record.", type: 'info');
     }
 
     public bool $showAll = false;
@@ -155,21 +262,32 @@ class Index extends Component
 
     public function render()
     {
-        $websites = Website::withCount('rewriteJobs')->get();
-        $availablePages = $this->selectedWebsiteId ? WebsitePage::where('website_id', $this->selectedWebsiteId)->get() : collect();
-        $aiModels = AiModel::all();
+        $user = auth()->user();
+        $isSuper = $user && $user->isSuperAdmin();
 
-        $query = RewriteJob::with(['website', 'page', 'aiModel'])->latest();
+        $websitesQuery = Website::query();
+        $modelsQuery = AiModel::query();
+        $jobsQuery = RewriteJob::with(['website', 'page', 'aiModel'])->latest();
+
+        if (!$isSuper && $user) {
+            $websitesQuery->where('user_id', $user->id);
+            $modelsQuery->whereHas('provider', fn($q) => $q->where('user_id', $user->id));
+            $jobsQuery->whereHas('website', fn($q) => $q->where('user_id', $user->id));
+        }
+
+        $websites = $websitesQuery->withCount('rewriteJobs')->get();
+        $availablePages = $this->selectedWebsiteId ? WebsitePage::where('website_id', $this->selectedWebsiteId)->get() : collect();
+        $aiModels = $modelsQuery->get();
 
         if ($this->websiteFilter) {
-            $query->where('website_id', $this->websiteFilter);
+            $jobsQuery->where('website_id', $this->websiteFilter);
         }
 
         if ($this->statusFilter !== 'all') {
-            $query->where('status', $this->statusFilter);
+            $jobsQuery->where('status', $this->statusFilter);
         }
 
-        $allJobs = $query->get();
+        $allJobs = $jobsQuery->get();
 
         if (!empty($this->search)) {
             $allJobs = $allJobs->filter(fn($j) => str_contains(strtolower($j->page->path ?? ''), strtolower($this->search)) || str_contains((string)$j->id, $this->search));
