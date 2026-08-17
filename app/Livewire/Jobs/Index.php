@@ -298,6 +298,27 @@ class Index extends Component
         $this->dispatch('toast', title: 'Logs Cleared', message: "Removed {$count} finished and failed job records.", type: 'info');
     }
 
+    /**
+     * Delete ALL jobs (any status) for the current user — Full Reset.
+     */
+    public function clearAllJobs(): void
+    {
+        $user    = auth()->user();
+        $isSuper = $user && $user->isSuperAdmin();
+
+        $query = RewriteJob::query();
+        if (!$isSuper && $user) {
+            $query->whereHas('website', fn($q) => $q->where('user_id', $user->id));
+        }
+        $count = $query->delete();
+
+        $this->dispatch('toast',
+            title: 'Full Reset Done 🗑️',
+            message: "Deleted all {$count} job records. Fresh start!",
+            type: 'info'
+        );
+    }
+
     public function clearSingleLog($id)
     {
         RewriteJob::destroy($id);
@@ -379,4 +400,5 @@ class Index extends Component
             'aiModels' => $aiModels,
         ]);
     }
+
 }
