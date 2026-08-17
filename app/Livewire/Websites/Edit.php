@@ -17,6 +17,7 @@ class Edit extends Component
     public string $local_production_path = '';
     public string $git_repository_url = '';
     public string $git_branch = 'main';
+    public string $git_auth_method = 'access_token';
     public string $git_access_token = '';
     public string $git_author_name = 'Imon Mahmud';
     public string $git_author_email = 'imon.mahmud4@gmail.com';
@@ -148,6 +149,11 @@ class Edit extends Component
             \Illuminate\Support\Facades\Log::error("Failed to update website: " . $e->getMessage());
             $this->dispatch('toast', title: 'Update Failed', message: "Could not save changes: " . $e->getMessage(), type: 'danger');
         }
+    }
+
+    public function save()
+    {
+        return $this->update();
     }
 
     public function deleteWebsite()
