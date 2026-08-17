@@ -61,7 +61,7 @@
                     <input
                         wire:model="git_repository_url"
                         type="text"
-                        placeholder="https://github.com/imon-mahmud/catharsisintl or imon-mahmud/catharsisintl"
+                        placeholder="https://github.com/username/repository or username/repository"
                         class="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] focus:ring-2 focus:ring-[#22C55E]"
                     >
                     @error('git_repository_url') <span class="text-rose-600 text-[11px] mt-1 block">{{ $message }}</span> @enderror
@@ -102,7 +102,7 @@
                         <input
                             wire:model="git_author_name"
                             type="text"
-                            placeholder="e.g. Imon Mahmud"
+                            placeholder="e.g. Your Name"
                             class="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
                         >
                         <span class="text-[10px] text-[#667085] mt-0.5 block">Name to display in Git commit logs on GitHub</span>
@@ -112,7 +112,7 @@
                         <input
                             wire:model="git_author_email"
                             type="email"
-                            placeholder="e.g. imon.mahmud4@gmail.com"
+                            placeholder="e.g. you@example.com"
                             class="w-full px-3.5 py-2 text-xs font-medium rounded-xl border border-[#D0D5DD] bg-white text-[#101828]"
                         >
                         <span class="text-[10px] text-[#667085] mt-0.5 block">Valid GitHub email to verify commit identity</span>
@@ -139,33 +139,34 @@
             </div>
         </div>
 
-        <!-- SECTION 2: Automation & Rewrite Policy -->
+        <!-- SECTION 2: Automation Schedule & Guardrails -->
         <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-xs p-6 space-y-5">
             <div class="border-b border-[#EAECF0] pb-3">
-                <h3 class="text-sm font-bold text-[#101828]">Automation Policy & Governance</h3>
-                <p class="text-xs text-[#667085]">Configure approval mode, rewrite frequency, and protected terms</p>
+                <h3 class="text-sm font-bold text-[#101828]">Automation Schedule & Guardrails</h3>
+                <p class="text-xs text-[#667085]">Define how frequently AI refreshes pages and set safety exclusions</p>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">Approval Mode</label>
+                    <label class="block text-xs font-semibold text-[#344054] mb-1">Content Approval Mode</label>
                     <select
                         wire:model="approval_mode"
-                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
+                        class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
                     >
-                        <option value="automatic">Automatic (Auto-update content when validation passes)</option>
-                        <option value="manual">Manual Review (Require human approval before applying)</option>
+                        <option value="automatic">Automatic (AI rewrites & pushes directly to Git)</option>
+                        <option value="manual">Manual Approval (Queues for human review before Git push)</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-[#344054] mb-1">Default Rewrite Interval *</label>
+                    <label class="block text-xs font-semibold text-[#344054] mb-1">Rewrite Frequency Cycle *</label>
                     <div class="flex items-center gap-2">
                         <input
                             wire:model="interval_value"
                             type="number"
                             min="1"
-                            class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
+                            placeholder="5"
+                            class="w-1/2 px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
                         >
                         <select
                             wire:model="interval_unit"
@@ -187,7 +188,7 @@
                     <input
                         wire:model="notification_email"
                         type="email"
-                        placeholder="e.g. client@catharsisintl.com or admin@ideomet.com"
+                        placeholder="e.g. notifications@yourdomain.com"
                         class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
                     >
                 </div>
@@ -199,7 +200,7 @@
                 <input
                     wire:model="protected_terms"
                     type="text"
-                    placeholder="e.g. Autoflow, Ideomet Technologies, ISO 9001:2015, RL-549, BAIRA"
+                    placeholder="e.g. BrandName, ProductX, LegalName"
                     class="w-full px-3.5 py-2 text-xs rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
                 >
                 <span class="text-[10px] text-[#667085] mt-0.5 block">Exact legal or brand terms that Groq AI must NEVER alter or rewrite.</span>
@@ -210,7 +211,7 @@
                 <input
                     wire:model="global_exclusion_selectors"
                     type="text"
-                    placeholder="e.g. header, footer, nav, .cookie-banner, #privacy-modal, .no-ai-rewrite"
+                    placeholder="e.g. header, footer, nav, .cookie-banner, #privacy-modal"
                     class="w-full px-3.5 py-2 text-xs font-mono rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] focus:bg-white text-[#101828] focus:ring-2 focus:ring-green-500/20 focus:border-[#22C55E] transition-all"
                 >
                 <span class="text-[10px] text-[#667085] mt-0.5 block">CSS selectors of HTML blocks to completely skip from AI content rewriting.</span>

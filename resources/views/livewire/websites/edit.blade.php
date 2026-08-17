@@ -58,7 +58,7 @@
                         wire:model.blur="git_repository_url"
                         value="{{ $git_repository_url ?? '' }}"
                         type="text"
-                        placeholder="https://github.com/imon-mahmud/catharsisintl or imon-mahmud/catharsisintl"
+                        placeholder="https://github.com/username/repository or username/repository"
                         class="w-full px-3.5 py-2.5 text-xs font-mono rounded-xl border border-[#CBD5E1] bg-white text-[#0F172A] focus:ring-2 focus:ring-[#22C55E]"
                     >
                 </div>
