@@ -205,8 +205,9 @@ PROMPT;
                 } elseif ($response->status() === 404) {
                     // Model not found — try next fallback
                     $aiError = "Model [{$attemptModel}] not found on this provider (404). Trying fallback...";
-                    Log::warning("JobExecutionService: 404 for model {$attemptModel} on {$endpoint} — retrying with {$endpointFallbackModel}");
+                    Log::warning("JobExecutionService: 404 for model {$attemptModel} on {$endpoint} — will try next fallback in list");
                     continue; // try next model
+
                 } else {
                     $aiError = "AI API Error {$response->status()}: " . ($response->json('error.message') ?? $response->body());
                     break; // non-404 error — don't retry
