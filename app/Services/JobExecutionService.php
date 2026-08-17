@@ -145,34 +145,70 @@ PROMPT;
         $rewrittenMap = [];
         $aiError      = null;
 
-        try {
-            $response = Http::withToken($apiKey)
-                ->withoutVerifying()
-                ->timeout(45)
-                ->post($endpoint . '/chat/completions', [
-                    'model'           => $modelId,
-                    'messages'        => [
-                        ['role' => 'system', 'content' => $systemPrompt],
-                        ['role' => 'user',   'content' => implode("\n\n---\n\n", $promptLines)],
-                    ],
-                    'temperature'     => 0.5,
-                    'max_tokens'      => 4096,
-                    'response_format' => ['type' => 'json_object'],
-                ]);
+        // Helper: build the smart fallback model based on endpoint
+        $endpointFallbackModel = match (true) {
+            str_contains($endpoint, 'openai.com')    => 'gpt-4o-mini',
+            str_contains($endpoint, 'anthropic.com') => 'claude-3-haiku-20240307',
+            str_contains($endpoint, 'groq.com')      => 'llama-3.3-70b-versatile',
+            str_contains($endpoint, 'together.ai')   => 'meta-llama/Llama-3-70b-chat-hf',
+            str_contains($endpoint, 'mistral.ai')    => 'mistral-small-latest',
+            str_contains($endpoint, 'deepseek.com')  => 'deepseek-chat',
+            default                                   => 'gpt-4o-mini',
+        };
 
-            if ($response->successful()) {
-                $raw          = $response->json('choices.0.message.content');
-                $rewrittenMap = json_decode($raw, true);
+        $attemptsToTry = [$modelId];
+        // If the configured model differs from the endpoint fallback, add fallback as second attempt
+        if ($modelId !== $endpointFallbackModel) {
+            $attemptsToTry[] = $endpointFallbackModel;
+        }
 
-                if (!is_array($rewrittenMap) && preg_match('/\{[\s\S]*\}/s', $raw, $m)) {
-                    $rewrittenMap = json_decode($m[0], true);
+        $usedModel = $modelId;
+        foreach ($attemptsToTry as $attemptModel) {
+            $usedModel = $attemptModel;
+            $aiError   = null;
+
+            try {
+                $response = Http::withToken($apiKey)
+                    ->withoutVerifying()
+                    ->timeout(45)
+                    ->post($endpoint . '/chat/completions', [
+                        'model'           => $attemptModel,
+                        'messages'        => [
+                            ['role' => 'system', 'content' => $systemPrompt],
+                            ['role' => 'user',   'content' => implode("\n\n---\n\n", $promptLines)],
+                        ],
+                        'temperature'     => 0.5,
+                        'max_tokens'      => 4096,
+                        'response_format' => ['type' => 'json_object'],
+                    ]);
+
+                if ($response->successful()) {
+                    $raw          = $response->json('choices.0.message.content');
+                    $rewrittenMap = json_decode($raw, true);
+
+                    if (!is_array($rewrittenMap) && preg_match('/\{[\s\S]*\}/s', $raw, $m)) {
+                        $rewrittenMap = json_decode($m[0], true);
+                    }
+
+                    if (is_array($rewrittenMap) && !empty($rewrittenMap)) {
+                        break; // success — stop retrying
+                    }
+
+                    $aiError = "AI returned empty or unparseable JSON with model [{$attemptModel}].";
+                } elseif ($response->status() === 404) {
+                    // Model not found — try next fallback
+                    $aiError = "Model [{$attemptModel}] not found on this provider (404). Trying fallback...";
+                    Log::warning("JobExecutionService: 404 for model {$attemptModel} on {$endpoint} — retrying with {$endpointFallbackModel}");
+                    continue; // try next model
+                } else {
+                    $aiError = "AI API Error {$response->status()}: " . ($response->json('error.message') ?? $response->body());
+                    break; // non-404 error — don't retry
                 }
-            } else {
-                $aiError = "AI API Error {$response->status()}: " . ($response->json('error.message') ?? $response->body());
+            } catch (\Throwable $e) {
+                $aiError = "AI Connection Error: " . $e->getMessage();
+                Log::error("JobExecutionService AI Error: " . $e->getMessage());
+                break;
             }
-        } catch (\Throwable $e) {
-            $aiError = "AI Connection Error: " . $e->getMessage();
-            Log::error("JobExecutionService AI Error: " . $e->getMessage());
         }
 
         if ($aiError || !is_array($rewrittenMap) || empty($rewrittenMap)) {
@@ -182,6 +218,7 @@ PROMPT;
             $job->update(['status' => JobStatus::Failed, 'error_message' => $err]);
             return ['success' => false, 'failed_step' => 'ai_rewrite', 'error_message' => $err, 'steps' => $steps];
         }
+
 
         $steps['ai_rewrite'] = [
             'status'  => 'success',
