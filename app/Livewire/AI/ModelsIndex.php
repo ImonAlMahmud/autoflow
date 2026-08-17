@@ -333,9 +333,19 @@ class ModelsIndex extends Component
         $modelsQuery = AiModel::with('provider')->latest();
 
         if ($user && !$user->isSuperAdmin()) {
-            $providersQuery->where('user_id', $user->id);
+            // User sees:
+            // 1. Their own created Providers (user_id == user->id)
+            // 2. Global System Providers provided by Super Admin (user_id IS NULL or owned by superadmin)
+            $providersQuery->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereNull('user_id')
+                  ->orWhereHas('user', fn($sq) => $sq->where('role', 'superadmin'));
+            });
+
             $modelsQuery->whereHas('provider', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+                $q->where('user_id', $user->id)
+                  ->orWhereNull('user_id')
+                  ->orWhereHas('user', fn($sq) => $sq->where('role', 'superadmin'));
             });
         }
 

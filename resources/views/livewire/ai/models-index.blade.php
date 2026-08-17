@@ -41,14 +41,23 @@
             <div class="bg-white rounded-2xl border border-[#EAECF0] shadow-card p-5 space-y-4 flex flex-col justify-between">
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-[#101828] uppercase tracking-wider">{{ $prov->name }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-[#101828] uppercase tracking-wider">{{ $prov->name }}</span>
+                            @if(!$prov->user_id || $prov->user?->isSuperAdmin())
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                    <i class="fa-solid fa-shield-halved text-[9px]"></i> System Plan
+                                </span>
+                            @endif
+                        </div>
                         <div class="flex items-center gap-1.5">
-                            <button wire:click="editProvider({{ $prov->id }})" type="button" class="p-1 text-[#667085] hover:text-[#15803D] rounded hover:bg-gray-100 transition-colors" title="Edit Provider">
-                                <i class="fa-solid fa-pen text-xs"></i>
-                            </button>
-                            <button wire:click="deleteProvider({{ $prov->id }})" type="button" class="p-1 text-[#667085] hover:text-rose-600 rounded hover:bg-gray-100 transition-colors" title="Remove Provider">
-                                <i class="fa-solid fa-trash text-xs"></i>
-                            </button>
+                            @if(auth()->user()?->isSuperAdmin() || $prov->user_id === auth()->id())
+                                <button wire:click="editProvider({{ $prov->id }})" type="button" class="p-1 text-[#667085] hover:text-[#15803D] rounded hover:bg-gray-100 transition-colors" title="Edit Provider">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                                <button wire:click="deleteProvider({{ $prov->id }})" type="button" class="p-1 text-[#667085] hover:text-rose-600 rounded hover:bg-gray-100 transition-colors" title="Remove Provider">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                </button>
+                            @endif
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 {{ strtoupper(is_object($prov->driver) ? $prov->driver->value : $prov->driver) }}
                             </span>
@@ -130,12 +139,18 @@
                                 </span>
                             </td>
                             <td class="px-5 py-3.5 text-right space-x-2">
-                                <button wire:click="editModel({{ $m->id }})" type="button" class="text-[#15803D] hover:text-[#166534] text-xs font-bold transition-colors inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-pen text-[10px]"></i> Edit
-                                </button>
-                                <button wire:click="deleteModel({{ $m->id }})" wire:confirm="Are you sure you want to remove this model?" type="button" class="text-rose-600 hover:text-rose-800 text-xs font-bold transition-colors inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-trash text-[10px]"></i> Remove
-                                </button>
+                                @if(auth()->user()?->isSuperAdmin() || $m->provider?->user_id === auth()->id())
+                                    <button wire:click="editModel({{ $m->id }})" type="button" class="text-[#15803D] hover:text-[#166534] text-xs font-bold transition-colors inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-pen text-[10px]"></i> Edit
+                                    </button>
+                                    <button wire:click="deleteModel({{ $m->id }})" wire:confirm="Are you sure you want to remove this model?" type="button" class="text-rose-600 hover:text-rose-800 text-xs font-bold transition-colors inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-trash text-[10px]"></i> Remove
+                                    </button>
+                                @else
+                                    <span class="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                        <i class="fa-solid fa-check text-[10px]"></i> Active in Plan
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                     @empty

@@ -11,6 +11,7 @@ class AiProvider extends Model
     protected $table = 'ai_providers';
 
     protected $fillable = [
+        'user_id',
         'name',
         'driver',
         'endpoint',
@@ -18,6 +19,11 @@ class AiProvider extends Model
         'extra_config',
         'status',
     ];
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     protected function casts(): array
     {
