@@ -37,7 +37,7 @@ class JobExecutionService
             $rawHtml = file_get_contents($filePath);
         }
 
-        // Cloud Fallback: Fetch directly from GitHub repository via API
+        // Cloud: Fetch directly from GitHub repository via API
         if (empty($rawHtml) && $job->website && !empty($job->website->git_repository_url) && $job->page) {
             $githubApi = new GithubApiService();
             $fileData = $githubApi->getFileContent($job->website, $job->page->path);
@@ -46,9 +46,33 @@ class JobExecutionService
             }
         }
 
+        if (empty($rawHtml)) {
+            $extractError = "Could not fetch HTML content for '{$job->page?->path}' from GitHub repository. Please verify your repository URL, branch, and GitHub Token.";
+            $steps['extract'] = [
+                'status' => 'failed',
+                'label' => 'Extract HTML & Content Structure',
+                'time' => round((microtime(true) - $start) * 1000) . 'ms',
+                'error' => $extractError,
+                'details' => 'Target file not found in repository branch',
+            ];
+            
+            $job->update([
+                'status' => JobStatus::Failed,
+                'error_message' => $extractError,
+            ]);
+
+            return [
+                'success' => false,
+                'failed_step' => 'extract',
+                'failed_label' => 'HTML File Extraction',
+                'error_message' => $extractError,
+                'steps' => $steps,
+            ];
+        }
+
         $cleanText = $this->extractReadableText($rawHtml);
         if (empty($cleanText)) {
-            $cleanText = "Catharsis International is an ISO 9001:2015 certified government-licensed manpower recruiting agency in Dhaka, Bangladesh since 1997. We supply skilled workers for Oil & Gas, Construction, and Hospitality sectors.";
+            $cleanText = trim(strip_tags($rawHtml));
         }
 
         $steps['extract'] = [
@@ -136,7 +160,27 @@ CRITICAL MANDATES:
         }
 
         if (empty($rewrittenText)) {
-            $rewrittenText = "Founded in 1997 in Dhaka, Catharsis International places skilled Bangladeshi personnel across Asia and the Gulf — under Govt. License RL-549 and certified under ISO 9001:2015 standards.";
+            $aiError = "AI model returned empty response for this page content.";
+            $steps['ai_rewrite'] = [
+                'status' => 'failed',
+                'label' => 'Groq Llama 3.3 AI Rewrite',
+                'time' => round((microtime(true) - $start) * 1000) . 'ms',
+                'error' => $aiError,
+                'details' => 'No content returned from model',
+            ];
+            
+            $job->update([
+                'status' => JobStatus::Failed,
+                'error_message' => $aiError,
+            ]);
+
+            return [
+                'success' => false,
+                'failed_step' => 'ai_rewrite',
+                'failed_label' => 'Groq AI Model Engine',
+                'error_message' => $aiError,
+                'steps' => $steps,
+            ];
         }
 
         $steps['ai_rewrite'] = [
@@ -451,14 +495,22 @@ CRITICAL MANDATES:
     {
         if (empty($html)) return '';
 
+        // Strip scripts, styles, embedded JSON-LD schema, head, nav, header, footer
         $html = preg_replace('/<(script|style|head|nav|header|footer)[^>]*?>.*?<\/\\1>/is', '', $html);
-        $html = preg_replace('/<\/(p|h1|h2|h3|h4|h5|h6|li|div|section)>/i', "\n\n", $html);
+        $html = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $html);
+        $html = preg_replace('/<!--(.|\s)*?-->/', '', $html);
+        $html = preg_replace('/\{"@context":.*?\}\s*<\/script>/is', '', $html);
+        $html = preg_replace('/<\/(p|h1|h2|h3|h4|h5|h6|li|div|section|article)>/i', "\n\n", $html);
+        
         $text = strip_tags($html);
         $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         
-        $lines = array_filter(array_map('trim', explode("\n", $text)));
-        $cleanText = implode("\n\n", array_slice($lines, 0, 15));
+        $lines = array_filter(array_map('trim', explode("\n", $text)), function($line) {
+            return strlen($line) > 15 && !str_starts_with($line, '{') && !str_starts_with($line, '/*') && !str_contains($line, 'font-size:') && !str_contains($line, 'var(--');
+        });
+        
+        $cleanText = implode("\n\n", array_slice($lines, 0, 20));
 
-        return trim(substr($cleanText, 0, 2500));
+        return trim(substr($cleanText, 0, 3000));
     }
 }
