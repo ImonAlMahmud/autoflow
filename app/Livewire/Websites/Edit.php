@@ -11,7 +11,6 @@ use Livewire\Component;
 class Edit extends Component
 {
     public $websiteId;
-    public $website;
     public string $name = '';
     public string $domain = '';
     public string $source_type = 'local'; // 'local' or 'git'
@@ -45,7 +44,6 @@ class Edit extends Component
         }
 
         if ($target) {
-            $this->website = $target;
             $this->websiteId = $target->id;
             $this->name = $target->name ?? '';
             $this->domain = $target->domain ?? '';
@@ -77,20 +75,25 @@ class Edit extends Component
     {
         $this->testingConnection = true;
 
-        $githubApi = new \App\Services\GithubApiService();
-        $dummyWebsite = new Website([
-            'git_repository_url' => $this->git_repository_url,
-            'git_access_token' => $this->git_access_token,
-            'git_branch' => $this->git_branch,
-        ]);
+        try {
+            $githubApi = new \App\Services\GithubApiService();
+            $dummyWebsite = new Website([
+                'git_repository_url' => $this->git_repository_url,
+                'git_access_token' => $this->git_access_token,
+                'git_branch' => $this->git_branch,
+            ]);
 
-        $files = $githubApi->listHtmlFiles($dummyWebsite);
-        if (!empty($files)) {
-            $this->connectionResult = 'Successfully connected to GitHub. Found ' . count($files) . ' HTML pages ready for automated AI refresh.';
-            $this->dispatch('toast', title: 'GitHub Handshake Successful 🚀', message: "Verified repository & found " . count($files) . " HTML pages.", type: 'success');
-        } else {
-            $this->connectionResult = 'Could not access repository. Please check your GitHub Repository URL, Target Branch, and Personal Access Token (PAT).';
-            $this->dispatch('toast', title: 'GitHub Auth Failed', message: 'Unable to access repository with provided token.', type: 'danger');
+            $files = $githubApi->listHtmlFiles($dummyWebsite);
+            if (!empty($files)) {
+                $this->connectionResult = 'Successfully connected to GitHub. Found ' . count($files) . ' HTML pages ready for automated AI refresh.';
+                $this->dispatch('toast', title: 'GitHub Handshake Successful 🚀', message: "Verified repository & found " . count($files) . " HTML pages.", type: 'success');
+            } else {
+                $this->connectionResult = 'Could not access repository. Please check your GitHub Repository URL, Target Branch, and Personal Access Token (PAT).';
+                $this->dispatch('toast', title: 'GitHub Auth Failed', message: 'Unable to access repository with provided token.', type: 'danger');
+            }
+        } catch (\Throwable $e) {
+            $this->connectionResult = 'Connection error: ' . $e->getMessage();
+            $this->dispatch('toast', title: 'Connection Error', message: $e->getMessage(), type: 'danger');
         }
 
         $this->testingConnection = false;
@@ -98,51 +101,76 @@ class Edit extends Component
 
     public function update()
     {
-        $target = Website::find($this->websiteId ?? 1) ?? Website::first();
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'domain' => 'required|string|max:255',
+            'git_repository_url' => 'required|string|max:255',
+            'git_branch' => 'required|string|max:100',
+            'git_access_token' => 'nullable|string|max:255',
+            'approval_mode' => 'required|string',
+            'notification_email' => 'nullable|email|max:255',
+            'interval_value' => 'required|integer|min:1',
+            'interval_unit' => 'required|in:minutes,hours,days,months',
+        ]);
 
-        if ($target) {
-            $target->update([
-                'name' => $this->name,
-                'domain' => $this->domain,
-                'local_production_path' => null,
-                'git_repository_url' => $this->git_repository_url,
-                'git_branch' => $this->git_branch,
-                'git_access_token' => $this->git_access_token ?: null,
-                'git_author_name' => $this->git_author_name ?: 'Imon Mahmud',
-                'git_author_email' => $this->git_author_email ?: 'imon.mahmud4@gmail.com',
-                'git_auth_method' => GitAuthMethod::HttpsToken,
-                'approval_mode' => $this->approval_mode === 'automatic' ? ApprovalMode::Automatic : ApprovalMode::Manual,
-                'notification_email' => $this->notification_email ?: null,
-                'default_rewrite_interval_days' => $this->interval_value,
-                'default_rewrite_interval_unit' => $this->interval_unit,
-                'protected_terms' => array_map('trim', explode(',', $this->protected_terms)),
-                'global_exclusion_selectors' => array_map('trim', explode(',', $this->global_exclusion_selectors)),
-            ]);
+        try {
+            $target = Website::find($this->websiteId ?? 1) ?? Website::first();
+
+            if ($target) {
+                $protectedTerms = array_values(array_filter(array_map('trim', explode(',', (string) $this->protected_terms))));
+                $exclusionSelectors = array_values(array_filter(array_map('trim', explode(',', (string) $this->global_exclusion_selectors))));
+
+                $target->update([
+                    'name' => $this->name,
+                    'domain' => $this->domain,
+                    'local_production_path' => null,
+                    'git_repository_url' => $this->git_repository_url,
+                    'git_branch' => $this->git_branch,
+                    'git_access_token' => $this->git_access_token ?: null,
+                    'git_author_name' => $this->git_author_name ?: 'Imon Mahmud',
+                    'git_author_email' => $this->git_author_email ?: 'imon.mahmud4@gmail.com',
+                    'git_auth_method' => GitAuthMethod::HttpsToken,
+                    'approval_mode' => $this->approval_mode === 'automatic' ? ApprovalMode::Automatic : ApprovalMode::Manual,
+                    'notification_email' => $this->notification_email ?: null,
+                    'default_rewrite_interval_days' => (int) $this->interval_value,
+                    'default_rewrite_interval_unit' => $this->interval_unit,
+                    'protected_terms' => $protectedTerms,
+                    'global_exclusion_selectors' => $exclusionSelectors,
+                ]);
+
+                $this->dispatch('toast', title: 'Settings Saved', message: "Website configuration updated successfully.", type: 'success');
+
+                return redirect()->route('websites.show', $target->id);
+            } else {
+                $this->dispatch('toast', title: 'Error', message: 'Website not found.', type: 'danger');
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to update website: " . $e->getMessage());
+            $this->dispatch('toast', title: 'Update Failed', message: "Could not save changes: " . $e->getMessage(), type: 'danger');
         }
-
-        $this->dispatch('toast', title: 'Settings Saved', message: "Website configuration updated successfully.", type: 'success');
-
-        return redirect()->route('websites.show', $target->id ?? 1);
     }
 
     public function deleteWebsite()
     {
-        $target = Website::find($this->websiteId ?? 1) ?? Website::first();
+        try {
+            $target = Website::find($this->websiteId ?? 1) ?? Website::first();
 
-        if ($target) {
-            $target->delete();
+            if ($target) {
+                $target->delete();
+            }
+
+            $this->dispatch('toast', title: 'Website Disconnected', message: 'Website and tracking configuration removed.', type: 'warning');
+
+            return redirect()->route('websites.index');
+        } catch (\Throwable $e) {
+            $this->dispatch('toast', title: 'Delete Failed', message: $e->getMessage(), type: 'danger');
         }
-
-        $this->dispatch('toast', title: 'Website Disconnected', message: 'Website and tracking configuration removed.', type: 'warning');
-
-        return redirect()->route('websites.index');
     }
 
     public function render()
     {
         return view('livewire.websites.edit', [
             'websiteId' => $this->websiteId,
-            'website' => $this->website,
             'name' => $this->name,
             'domain' => $this->domain,
             'source_type' => $this->source_type,

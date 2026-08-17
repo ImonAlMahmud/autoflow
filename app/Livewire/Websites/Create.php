@@ -91,47 +91,65 @@ class Create extends Component
             return redirect()->route('subscription');
         }
 
-        $website = Website::create([
-            'user_id' => auth()->id() ?? 1,
-            'name' => $this->name,
-            'domain' => $this->domain,
-            'local_production_path' => null,
-            'git_repository_url' => $this->git_repository_url,
-            'git_branch' => $this->git_branch,
-            'git_auth_method' => GitAuthMethod::HttpsToken,
-            'git_access_token' => $this->git_access_token,
-            'git_author_name' => $this->git_author_name ?: 'Imon Mahmud',
-            'git_author_email' => $this->git_author_email ?: 'imon.mahmud4@gmail.com',
-            'approval_mode' => $this->approval_mode === 'automatic' ? ApprovalMode::Automatic : ApprovalMode::Manual,
-            'notification_email' => $this->notification_email ?: null,
-            'status' => WebsiteStatus::Active,
-            'default_rewrite_interval_days' => $this->interval_value,
-            'default_rewrite_interval_unit' => $this->interval_unit,
-            'protected_terms' => array_map('trim', explode(',', $this->protected_terms)),
-            'global_exclusion_selectors' => array_map('trim', explode(',', $this->global_exclusion_selectors)),
-            'last_synced_at' => now(),
-        ]);
+        try {
+            $protectedTerms = array_values(array_filter(array_map('trim', explode(',', (string) $this->protected_terms))));
+            $exclusionSelectors = array_values(array_filter(array_map('trim', explode(',', (string) $this->global_exclusion_selectors))));
 
-        // Auto-discover pages from GitHub
-        $githubApi = new \App\Services\GithubApiService();
-        $files = $githubApi->listHtmlFiles($website);
-        foreach ($files as $rel) {
-            $cleanName = trim(str_replace(['.html', '-', '_'], ['', ' ', ' '], $rel), '/ ');
-            $parts = explode('/', $cleanName);
-            $friendlyName = implode(' › ', array_map('ucwords', $parts));
-
-            \App\Models\WebsitePage::create([
-                'website_id' => $website->id,
-                'path' => $rel,
-                'friendly_name' => $friendlyName ?: 'Home Page',
-                'rewrite_enabled' => true,
-                'rewrite_interval_days' => $website->default_rewrite_interval_days ?? 5,
+            $website = Website::create([
+                'user_id' => auth()->id() ?? 1,
+                'name' => $this->name,
+                'domain' => $this->domain,
+                'local_production_path' => null,
+                'git_repository_url' => $this->git_repository_url,
+                'git_branch' => $this->git_branch,
+                'git_auth_method' => GitAuthMethod::HttpsToken,
+                'git_access_token' => $this->git_access_token ?: null,
+                'git_author_name' => $this->git_author_name ?: 'Imon Mahmud',
+                'git_author_email' => $this->git_author_email ?: 'imon.mahmud4@gmail.com',
+                'approval_mode' => $this->approval_mode === 'automatic' ? ApprovalMode::Automatic : ApprovalMode::Manual,
+                'notification_email' => $this->notification_email ?: null,
+                'status' => WebsiteStatus::Active,
+                'default_rewrite_interval_days' => (int) $this->interval_value,
+                'default_rewrite_interval_unit' => $this->interval_unit,
+                'protected_terms' => $protectedTerms,
+                'global_exclusion_selectors' => $exclusionSelectors,
+                'last_synced_at' => now(),
             ]);
+
+            // Auto-discover pages from GitHub safely
+            $discoveredCount = 0;
+            try {
+                $githubApi = new \App\Services\GithubApiService();
+                $files = $githubApi->listHtmlFiles($website);
+                foreach ($files as $rel) {
+                    $cleanName = trim(str_replace(['.html', '-', '_'], ['', ' ', ' '], $rel), '/ ');
+                    $parts = explode('/', $cleanName);
+                    $friendlyName = implode(' › ', array_map('ucwords', $parts));
+
+                    \App\Models\WebsitePage::updateOrCreate(
+                        [
+                            'website_id' => $website->id,
+                            'path' => $rel,
+                        ],
+                        [
+                            'friendly_name' => $friendlyName ?: 'Home Page',
+                            'rewrite_enabled' => true,
+                            'rewrite_interval_days' => $website->default_rewrite_interval_days ?? 5,
+                        ]
+                    );
+                    $discoveredCount++;
+                }
+            } catch (\Throwable $pageEx) {
+                \Illuminate\Support\Facades\Log::warning("Website pages auto-discovery skipped: " . $pageEx->getMessage());
+            }
+
+            $this->dispatch('toast', title: 'Website Connected 🚀', message: "Registered {$website->name} and discovered {$discoveredCount} HTML pages.", type: 'success');
+
+            return redirect()->route('websites.index');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to create website: " . $e->getMessage());
+            $this->dispatch('toast', title: 'Save Failed', message: "Could not save website: " . $e->getMessage(), type: 'danger');
         }
-
-        $this->dispatch('toast', title: 'Website Connected to GitHub 🚀', message: "Registered {$website->name} and discovered " . count($files) . " HTML pages.", type: 'success');
-
-        return redirect()->route('websites.index');
     }
 
     public function render()

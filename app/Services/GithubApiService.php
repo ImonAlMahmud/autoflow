@@ -55,41 +55,46 @@ class GithubApiService
      */
     public function getFileContent(Website $website, string $filePath): ?array
     {
-        $repoInfo = $this->parseRepo($website->git_repository_url ?? '');
-        if (!$repoInfo) {
-            Log::error("GitHub API: Invalid repository URL {$website->git_repository_url}");
+        try {
+            $repoInfo = $this->parseRepo($website->git_repository_url ?? '');
+            if (!$repoInfo) {
+                Log::error("GitHub API: Invalid repository URL {$website->git_repository_url}");
+                return null;
+            }
+
+            $token = $this->resolveToken($website);
+            $branch = $website->git_branch ?: 'main';
+            $cleanPath = ltrim($filePath, '/\\');
+
+            $url = "https://api.github.com/repos/{$repoInfo['owner']}/{$repoInfo['repo']}/contents/{$cleanPath}?ref={$branch}";
+
+            $request = Http::withHeaders([
+                'Accept' => 'application/vnd.github.v3+json',
+                'User-Agent' => 'Autoflow-AI-Agent',
+            ])->timeout(15);
+
+            if ($token) {
+                $request->withToken($token);
+            }
+
+            $response = $request->get($url);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $content = isset($data['content']) ? base64_decode($data['content']) : null;
+                return [
+                    'content' => $content,
+                    'sha' => $data['sha'] ?? null,
+                    'size' => $data['size'] ?? 0,
+                ];
+            }
+
+            Log::warning("GitHub API: Could not fetch {$cleanPath} from {$repoInfo['owner']}/{$repoInfo['repo']} ({$response->status()}): " . $response->body());
+            return null;
+        } catch (\Throwable $e) {
+            Log::error("GitHub API getFileContent exception: " . $e->getMessage());
             return null;
         }
-
-        $token = $this->resolveToken($website);
-        $branch = $website->git_branch ?: 'main';
-        $cleanPath = ltrim($filePath, '/\\');
-
-        $url = "https://api.github.com/repos/{$repoInfo['owner']}/{$repoInfo['repo']}/contents/{$cleanPath}?ref={$branch}";
-
-        $request = Http::withHeaders([
-            'Accept' => 'application/vnd.github.v3+json',
-            'User-Agent' => 'Autoflow-AI-Agent',
-        ])->timeout(15);
-
-        if ($token) {
-            $request->withToken($token);
-        }
-
-        $response = $request->get($url);
-
-        if ($response->successful()) {
-            $data = $response->json();
-            $content = isset($data['content']) ? base64_decode($data['content']) : null;
-            return [
-                'content' => $content,
-                'sha' => $data['sha'] ?? null,
-                'size' => $data['size'] ?? 0,
-            ];
-        }
-
-        Log::warning("GitHub API: Could not fetch {$cleanPath} from {$repoInfo['owner']}/{$repoInfo['repo']} ({$response->status()}): " . $response->body());
-        return null;
     }
 
     /**
@@ -97,38 +102,45 @@ class GithubApiService
      */
     public function listHtmlFiles(Website $website): array
     {
-        $repoInfo = $this->parseRepo($website->git_repository_url ?? '');
-        if (!$repoInfo) {
+        try {
+            $repoInfo = $this->parseRepo($website->git_repository_url ?? '');
+            if (!$repoInfo) {
+                return [];
+            }
+
+            $token = $this->resolveToken($website);
+            $branch = $website->git_branch ?: 'main';
+
+            $url = "https://api.github.com/repos/{$repoInfo['owner']}/{$repoInfo['repo']}/git/trees/{$branch}?recursive=1";
+
+            $request = Http::withHeaders([
+                'Accept' => 'application/vnd.github.v3+json',
+                'User-Agent' => 'Autoflow-AI-Agent',
+            ])->timeout(20);
+
+            if ($token) {
+                $request->withToken($token);
+            }
+
+            $response = $request->get($url);
+
+            $htmlFiles = [];
+            if ($response->successful()) {
+                $tree = $response->json('tree') ?? [];
+                foreach ($tree as $item) {
+                    if (($item['type'] ?? '') === 'blob' && str_ends_with(strtolower($item['path'] ?? ''), '.html')) {
+                        $htmlFiles[] = '/' . ltrim($item['path'], '/');
+                    }
+                }
+            } else {
+                Log::warning("GitHub API listHtmlFiles failed ({$response->status()}): " . $response->body());
+            }
+
+            return $htmlFiles;
+        } catch (\Throwable $e) {
+            Log::error("GitHub API listHtmlFiles exception: " . $e->getMessage());
             return [];
         }
-
-        $token = $this->resolveToken($website);
-        $branch = $website->git_branch ?: 'main';
-
-        $url = "https://api.github.com/repos/{$repoInfo['owner']}/{$repoInfo['repo']}/git/trees/{$branch}?recursive=1";
-
-        $request = Http::withHeaders([
-            'Accept' => 'application/vnd.github.v3+json',
-            'User-Agent' => 'Autoflow-AI-Agent',
-        ])->timeout(20);
-
-        if ($token) {
-            $request->withToken($token);
-        }
-
-        $response = $request->get($url);
-
-        $htmlFiles = [];
-        if ($response->successful()) {
-            $tree = $response->json('tree') ?? [];
-            foreach ($tree as $item) {
-                if (($item['type'] ?? '') === 'blob' && str_ends_with(strtolower($item['path'] ?? ''), '.html')) {
-                    $htmlFiles[] = '/' . ltrim($item['path'], '/');
-                }
-            }
-        }
-
-        return $htmlFiles;
     }
 
     /**
@@ -136,89 +148,97 @@ class GithubApiService
      */
     public function updateFile(Website $website, string $filePath, string $newContent, string $commitMessage = 'Autoflow AI: Content refresh'): array
     {
-        $repoInfo = $this->parseRepo($website->git_repository_url ?? '');
-        if (!$repoInfo) {
-            return [
-                'success' => false,
-                'message' => 'Invalid GitHub repository URL format.',
-            ];
-        }
-
-        $token = $this->resolveToken($website);
-        if (empty($token)) {
-            return [
-                'success' => false,
-                'message' => 'GitHub Personal Access Token (PAT) is required. Set it globally in Settings or on this Website.',
-            ];
-        }
-
-        $branch = $website->git_branch ?: 'main';
-        $cleanPath = ltrim($filePath, '/\\');
-
-        // 1. Get current SHA
-        $fileData = $this->getFileContent($website, $cleanPath);
-        $currentSha = $fileData['sha'] ?? null;
-
-        $url = "https://api.github.com/repos/{$repoInfo['owner']}/{$repoInfo['repo']}/contents/{$cleanPath}";
-
-        $payload = [
-            'message' => $commitMessage,
-            'content' => base64_encode($newContent),
-            'branch' => $branch,
-            'committer' => [
-                'name' => $website->git_author_name ?: 'Autoflow AI Bot',
-                'email' => $website->git_author_email ?: 'bot@autoflow.ideomet.com',
-            ],
-            'author' => [
-                'name' => $website->git_author_name ?: 'Autoflow AI Bot',
-                'email' => $website->git_author_email ?: 'bot@autoflow.ideomet.com',
-            ],
-        ];
-
-        if ($currentSha) {
-            $payload['sha'] = $currentSha;
-        }
-
-        $response = Http::withHeaders([
-            'Accept' => 'application/vnd.github.v3+json',
-            'User-Agent' => 'Autoflow-AI-Agent',
-        ])
-        ->withToken($token)
-        ->timeout(25)
-        ->put($url, $payload);
-
-        if ($response->successful()) {
-            $commitSha = $response->json('commit.sha');
-            Log::info("GitHub API Commit Success: Committed to {$cleanPath} on {$repoInfo['owner']}/{$repoInfo['repo']} [SHA: {$commitSha}]");
-
-            // Record GitOperation entry for Dashboard Live Stream & Chart Velocity
-            try {
-                \App\Models\GitOperation::create([
-                    'website_id' => $website->id,
-                    'operation' => \App\Enums\GitOperationType::Push,
-                    'status' => 'success',
-                    'commit_hash' => substr($commitSha ?? md5(time()), 0, 8),
-                    'branch' => $branch,
-                    'message' => $commitMessage,
-                    'duration_ms' => 450,
-                ]);
-            } catch (\Throwable $e) {
-                Log::warning("GitOperation log save notice: " . $e->getMessage());
+        try {
+            $repoInfo = $this->parseRepo($website->git_repository_url ?? '');
+            if (!$repoInfo) {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid GitHub repository URL format.',
+                ];
             }
 
+            $token = $this->resolveToken($website);
+            if (empty($token)) {
+                return [
+                    'success' => false,
+                    'message' => 'GitHub Personal Access Token (PAT) is required. Set it globally in Settings or on this Website.',
+                ];
+            }
+
+            $branch = $website->git_branch ?: 'main';
+            $cleanPath = ltrim($filePath, '/\\');
+
+            // 1. Get current SHA
+            $fileData = $this->getFileContent($website, $cleanPath);
+            $currentSha = $fileData['sha'] ?? null;
+
+            $url = "https://api.github.com/repos/{$repoInfo['owner']}/{$repoInfo['repo']}/contents/{$cleanPath}";
+
+            $payload = [
+                'message' => $commitMessage,
+                'content' => base64_encode($newContent),
+                'branch' => $branch,
+                'committer' => [
+                    'name' => $website->git_author_name ?: 'Autoflow AI Bot',
+                    'email' => $website->git_author_email ?: 'bot@autoflow.ideomet.com',
+                ],
+                'author' => [
+                    'name' => $website->git_author_name ?: 'Autoflow AI Bot',
+                    'email' => $website->git_author_email ?: 'bot@autoflow.ideomet.com',
+                ],
+            ];
+
+            if ($currentSha) {
+                $payload['sha'] = $currentSha;
+            }
+
+            $response = Http::withHeaders([
+                'Accept' => 'application/vnd.github.v3+json',
+                'User-Agent' => 'Autoflow-AI-Agent',
+            ])
+            ->withToken($token)
+            ->timeout(25)
+            ->put($url, $payload);
+
+            if ($response->successful()) {
+                $commitSha = $response->json('commit.sha');
+                Log::info("GitHub API Commit Success: Committed to {$cleanPath} on {$repoInfo['owner']}/{$repoInfo['repo']} [SHA: {$commitSha}]");
+
+                // Record GitOperation entry for Dashboard Live Stream & Chart Velocity
+                try {
+                    \App\Models\GitOperation::create([
+                        'website_id' => $website->id,
+                        'operation' => \App\Enums\GitOperationType::Push,
+                        'status' => 'success',
+                        'commit_hash' => substr($commitSha ?? md5(time()), 0, 8),
+                        'branch' => $branch,
+                        'message' => $commitMessage,
+                        'duration_ms' => 450,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning("GitOperation log save notice: " . $e->getMessage());
+                }
+
+                return [
+                    'success' => true,
+                    'message' => "Committed and pushed to GitHub ({$branch}) successfully! SHA: " . substr($commitSha, 0, 7),
+                    'commit_sha' => $commitSha,
+                ];
+            }
+
+            $err = $response->json('message') ?? $response->body();
+            Log::error("GitHub API Commit Failed ({$response->status()}): {$err}");
+
             return [
-                'success' => true,
-                'message' => "Committed and pushed to GitHub ({$branch}) successfully! SHA: " . substr($commitSha, 0, 7),
-                'commit_sha' => $commitSha,
+                'success' => false,
+                'message' => "GitHub API Error ({$response->status()}): {$err}",
+            ];
+        } catch (\Throwable $e) {
+            Log::error("GitHub API updateFile exception: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => "GitHub API Exception: " . $e->getMessage(),
             ];
         }
-
-        $err = $response->json('message') ?? $response->body();
-        Log::error("GitHub API Commit Failed ({$response->status()}): {$err}");
-
-        return [
-            'success' => false,
-            'message' => "GitHub API Error ({$response->status()}): {$err}",
-        ];
     }
 }
